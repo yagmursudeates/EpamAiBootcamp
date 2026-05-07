@@ -1,0 +1,31 @@
+{
+	"servers": {
+		"io.github.upstash/context7": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@upstash/context7-mcp@1.0.31"
+			],
+			"env": {
+				"CONTEXT7_API_KEY": "${input:context7ApiKey}"
+			}
+		},
+		"microsoft/playwright-mcp": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest"
+			]		},
+		"com.atlassian/atlassian-mcp-server": {
+			"type": "http",
+			"url": "https://mcp.atlassian.com/v1/mcp"		},
+	},
+	"inputs": [
+		{
+			"id": "context7ApiKey",
+			"type": "promptString",
+			"description": "Context7 API Key (get from https://context7.com)",
+			"password": true
+		}
+	]
+}

@@ -1,0 +1,6 @@
+# Screenshots from Playwright demos
+*.png
+
+# Environment files
+.env
+.env.local
