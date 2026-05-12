@@ -160,3 +160,23 @@ Phase 1 (SETUP): T001–T008
 **Total tasks**: 56 (T001–T056)
 **Tasks per story**: SETUP 8 | FOUND 9 | US1 6 | US2 8 | US3 9 | US4 9 | Polish 7
 **Parallel opportunities**: 30+ tasks can run concurrently within their phase
+
+---
+
+## Deferred to v2
+
+The following items are out of scope for v1 but tracked here for traceability.
+
+### Performance / Observability
+- **SC-002** _(no task)_: Load / perf test asserting login p95 < 500ms under realistic concurrency. Requires a k6 or Artillery test suite — deferred to v2 hardening sprint.
+- **SC-003** _(no task)_: Timing assertion that password-reset email is dispatched within 5 seconds of a valid request. Requires integration test with instrumented email mock — deferred to v2.
+
+### Security Hardening (from `checklists/security.md` — 8 items)
+- JWT key rotation with rolling dual-key verification window (grace period for in-flight tokens)
+- Refresh token binding to device fingerprint or IP (anti-theft binding)
+- PKCE / proof-of-possession for public clients
+- Account lockout after sustained brute-force (permanent lock vs. timed lock decision)
+- CORS policy configuration at application layer (currently delegated to reverse proxy)
+- HSTS header + certificate pinning guidance
+- Secrets scanning / SAST integration in CI pipeline
+- Refresh token family invalidation audit trail (persistent log of reuse-attack events)

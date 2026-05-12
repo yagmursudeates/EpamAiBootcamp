@@ -84,8 +84,8 @@ JWT access tokens expire after 24 hours. A refresh token mechanism allows users 
 - How does the system handle concurrent login requests with the same credentials? → Multiple concurrent sessions are supported; each login issues an independent refresh token scoped to that session.
 - What happens if the email service is unavailable during a password reset request? → System returns HTTP 200 (prevents enumeration); retries email delivery asynchronously up to 3 times with exponential backoff; logs an audit event on exhaustion.
 - How does the system handle a brute-force attack on the login endpoint? → Max 5 attempts / 15-min per IP; exponential backoff after 3 failures; HTTP 429 with `Retry-After` header.
-- What happens if a JWT secret is rotated — are existing tokens invalidated gracefully?
-- How are refresh tokens stored — are they hashed at rest?
+- What happens if a JWT secret is rotated — are existing tokens invalidated gracefully? → In v1, key rotation invalidates all existing tokens immediately (no grace period). Rolling key support (dual-key verification window) is deferred to v2.
+- How are refresh tokens stored — are they hashed at rest? → Yes. Only the SHA-256 hex hash of the raw token is persisted in the `refresh_tokens` table; the raw token is returned to the client once and never stored.
 
 ## Requirements _(mandatory)_
 
@@ -99,7 +99,7 @@ JWT access tokens expire after 24 hours. A refresh token mechanism allows users 
 - **FR-006**: System MUST support password reset via a time-limited (15-minute), single-use token delivered to the user's registered email.
 - **FR-007**: System MUST invalidate all active sessions (refresh tokens) when a password reset is completed.
 - **FR-008**: System MUST return identical error responses for "wrong password" and "email not found" to prevent user enumeration attacks. The error message body MUST be: `{ "error": "Invalid credentials" }` for both cases — no additional detail.
-- **FR-009**: _(Superseded by FR-013.)_ System MUST provide `POST /auth/logout` to revoke the current session's refresh token and `POST /auth/logout-all` to revoke all active refresh tokens for the authenticated user. See FR-013 for full semantics.
+- ~~**FR-009**~~: _(Removed — superseded entirely by FR-013. Retained for numbering continuity only.)_
 - **FR-010**: System MUST enforce rate limiting on login and password-reset endpoints at two levels: (1) **per-IP**: maximum 5 attempts per 15-minute window; (2) **per-account**: maximum 10 failed attempts per 30-minute window regardless of source IP. After 3 consecutive failures on either dimension, exponential backoff MUST be applied. Responses MUST return HTTP 429 Too Many Requests with a `Retry-After` header when the limit is exceeded.
 - **FR-011**: System MUST emit structured audit log entries (JSON) for the following security events: registration, login success, login failure, password reset requested, password reset completed, token refresh, logout, token revocation, and email delivery failure. Every log entry MUST include these mandatory fields: `event` (string enum), `timestamp` (ISO 8601), `userId` (SHA-256 hex of the internal user UUID — non-reversible), `ip` (string), `level` ("info" | "warn" | "error"). Log payloads MUST NOT contain passwords, plaintext tokens, email addresses, or any other PII.
 - **FR-012**: When the email service is unavailable during a password reset, the system MUST return HTTP 200 to the caller (to prevent user enumeration), retry delivery asynchronously up to 3 times with exponential backoff, and emit an audit log entry if all retries are exhausted.

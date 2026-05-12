@@ -13,18 +13,18 @@ Build a production-ready REST API authentication system in TypeScript (strict mo
 **Language/Version**: TypeScript 5.x — strict mode (Constitution mandate)
 **Primary Dependencies**:
 
-| Package | Role | FR |
-|---------|------|----|
-| `express` | HTTP server framework; app factory pattern | All endpoints |
-| `jsonwebtoken` | JWT signing/verification (RS256/HS256) | FR-003, FR-005 |
-| `bcrypt` (cost ≥ 12) | Password hashing; plaintext never stored | FR-002 |
-| `@prisma/client` | PostgreSQL ORM; parameterised queries by default | FR-015 |
-| `zod` | Runtime input validation at route boundaries | FR-015 |
-| `nodemailer` | Email delivery (injected via `IEmailService`) | FR-006, FR-012 |
-| `express-rate-limit` | Per-IP + per-account dual rate limiting | FR-010 |
-| `winston` | Structured JSON audit logging | FR-011 |
-| `jest` + `ts-jest` | Unit + integration tests; coverage gate 80% | SC-004 |
-| `supertest` | HTTP integration test client | SC-004 |
+| Package              | Role                                             | FR             |
+| -------------------- | ------------------------------------------------ | -------------- |
+| `express`            | HTTP server framework; app factory pattern       | All endpoints  |
+| `jsonwebtoken`       | JWT signing/verification (RS256/HS256)           | FR-003, FR-005 |
+| `bcrypt` (cost ≥ 12) | Password hashing; plaintext never stored         | FR-002         |
+| `@prisma/client`     | PostgreSQL ORM; parameterised queries by default | FR-015         |
+| `zod`                | Runtime input validation at route boundaries     | FR-015         |
+| `nodemailer`         | Email delivery (injected via `IEmailService`)    | FR-006, FR-012 |
+| `express-rate-limit` | Per-IP + per-account dual rate limiting          | FR-010         |
+| `winston`            | Structured JSON audit logging                    | FR-011         |
+| `jest` + `ts-jest`   | Unit + integration tests; coverage gate 80%      | SC-004         |
+| `supertest`          | HTTP integration test client                     | SC-004         |
 
 **Storage**: PostgreSQL — relational, supports row-level revocation queries efficiently
 **Testing**: Jest + `ts-jest` with coverage reporting; `supertest` for HTTP integration tests
@@ -69,10 +69,6 @@ src/
 │   └── env.ts                  # Validated env vars (TLS, JWT secret, DB URL)
 ├── db/
 │   └── client.ts               # Prisma client singleton
-├── models/                     # TypeScript interfaces (no ORM models here)
-│   ├── user.model.ts
-│   ├── refresh-token.model.ts
-│   └── password-reset-token.model.ts
 ├── services/                   # Business logic (80% coverage gate applies here)
 │   ├── auth.service.ts         # register, login, logout, logoutAll
 │   ├── token.service.ts        # issueAccessToken, issueRefreshToken, rotate, revoke
