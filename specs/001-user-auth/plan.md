@@ -2,6 +2,7 @@
 
 **Branch**: `module_5` | **Date**: 2026-05-12 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/001-user-auth/spec.md`
+**Stack confirmed**: Express.js + TypeScript · PostgreSQL (Prisma ORM) · bcrypt · JWT · Jest
 
 ## Summary
 
@@ -12,14 +13,18 @@ Build a production-ready REST API authentication system in TypeScript (strict mo
 **Language/Version**: TypeScript 5.x — strict mode (Constitution mandate)
 **Primary Dependencies**:
 
-- `express` — HTTP server
-- `jsonwebtoken` — JWT signing/verification (RS256)
-- `bcrypt` — password hashing (cost factor ≥ 12)
-- `zod` — runtime input validation and schema enforcement
-- `nodemailer` — email delivery (injected; SMTP-agnostic)
-- `express-rate-limit` — per-IP and per-account rate limiting middleware
-- `winston` — structured JSON audit logging
-- `prisma` (or `pg` + raw parameterised queries) — database access (injection-safe)
+| Package | Role | FR |
+|---------|------|----|
+| `express` | HTTP server framework; app factory pattern | All endpoints |
+| `jsonwebtoken` | JWT signing/verification (RS256/HS256) | FR-003, FR-005 |
+| `bcrypt` (cost ≥ 12) | Password hashing; plaintext never stored | FR-002 |
+| `@prisma/client` | PostgreSQL ORM; parameterised queries by default | FR-015 |
+| `zod` | Runtime input validation at route boundaries | FR-015 |
+| `nodemailer` | Email delivery (injected via `IEmailService`) | FR-006, FR-012 |
+| `express-rate-limit` | Per-IP + per-account dual rate limiting | FR-010 |
+| `winston` | Structured JSON audit logging | FR-011 |
+| `jest` + `ts-jest` | Unit + integration tests; coverage gate 80% | SC-004 |
+| `supertest` | HTTP integration test client | SC-004 |
 
 **Storage**: PostgreSQL — relational, supports row-level revocation queries efficiently
 **Testing**: Jest + `ts-jest` with coverage reporting; `supertest` for HTTP integration tests

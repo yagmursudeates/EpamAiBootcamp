@@ -30,7 +30,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   try {
     const publicKey = env.JWT_PUBLIC_KEY.replace(/\\n/g, "\n");
     const payload = jwt.verify(token, publicKey, {
-      algorithms: [env.JWT_ALGORITHM as jwt.Algorithm],
+      algorithms: [env.JWT_ALGORITHM],
     }) as JwtPayload;
 
     if (!payload.sub || !payload.jti || !payload.iat || !payload.exp) {

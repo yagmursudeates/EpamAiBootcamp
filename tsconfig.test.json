@@ -4,5 +4,6 @@
     "rootDir": ".",
     "types": ["jest", "node"]
   },
-  "include": ["src/**/*", "tests/**/*", "specs/**/*"]
+  "include": ["src/**/*", "tests/**/*", "specs/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
