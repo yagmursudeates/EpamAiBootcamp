@@ -56,7 +56,7 @@ description: "Task list for User Authentication System implementation"
 - [x] T020 [P] [US1] Write JSDoc comments for all exported functions in `auth.service.ts` with `@param`, `@returns`, `@throws` → `src/services/auth.service.ts`
 - [x] T021 [US1] Add `POST /auth/register` route: validate body with T018 schema, call `auth.service.register`, return HTTP 201 on success, HTTP 409 on duplicate, HTTP 400 on validation error → `src/routes/auth.router.ts`
 - [x] T022 [US1] Write unit tests for `auth.service.register`: happy path, duplicate email (409), invalid password (400), assert password never in response, assert bcrypt hash present in DB → `tests/unit/auth.service.test.ts`
-- [ ] T023 [US1] Write integration test for `POST /auth/register` via supertest: valid payload → 201; duplicate → 409; bad password → 400 with field errors → `tests/integration/auth.routes.test.ts`
+- [x] T023 [US1] Write integration test for `POST /auth/register` via supertest: valid payload → 201; duplicate → 409; bad password → 400 with field errors → `tests/integration/auth.routes.test.ts`
 
 ---
 
@@ -72,7 +72,7 @@ description: "Task list for User Authentication System implementation"
 - [x] T028 [P] [US2] Add `POST /auth/login` route with per-IP + per-account rate limiters; validate body; call `auth.service.login`; return HTTP 200 with token pair or HTTP 401 with identical generic message for wrong password/unknown email → `src/routes/auth.router.ts`
 - [x] T029 [US2] Write unit tests for `token.service`: verify JWT claims present, algorithm RS256, expiry correct; verify refresh token stored as hash; verify raw token not stored → `tests/unit/token.service.test.ts`
 - [x] T030 [P] [US2] Write unit tests for `auth.service.login`: correct credentials → token pair; wrong password → generic 401; unknown email → same generic 401 (assert identical error message body); emit correct audit events → `tests/unit/auth.service.test.ts`
-- [ ] T031 [P] [US2] Write integration tests for `POST /auth/login`: valid → 200 + tokens; bad password → 401; unknown email → 401 (same body as bad password); rate limit → 429 + `Retry-After` → `tests/integration/auth.routes.test.ts`
+- [x] T031 [P] [US2] Write integration tests for `POST /auth/login`: valid → 200 + tokens; bad password → 401; unknown email → 401 (same body as bad password); rate limit → 429 + `Retry-After` → `tests/integration/auth.routes.test.ts`
 
 ---
 
