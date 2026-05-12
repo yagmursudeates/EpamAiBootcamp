@@ -1,0 +1,246 @@
+openapi: "3.1.0"
+info:
+  title: User Authentication API
+  version: "1.0.0"
+  description: |
+    REST API for user registration, JWT-based authentication,
+    password reset, and multi-device session management.
+
+servers:
+  - url: https://api.example.com
+    description: Production (TLS required — FR-014)
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          description: "Min 8 chars, 1 uppercase, 1 number (FR-001)"
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: "RS256-signed JWT; claims: sub, iat, exp, jti"
+        refreshToken:
+          type: string
+          description: "Opaque 64-char hex token; 7-day rolling expiry"
+        expiresIn:
+          type: integer
+          example: 86400
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+          description: Raw reset token from email link
+        password:
+          type: string
+          minLength: 8
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      security: []
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account created successfully"
+        "400":
+          description: Validation error (invalid email or password complexity)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      summary: Login and receive JWT + refresh token
+      security: []
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: "Invalid credentials (generic — FR-008)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until retry is allowed
+
+  /auth/refresh:
+    post:
+      summary: Rotate refresh token and issue new access token
+      security: []
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: Invalid, expired, or already-rotated refresh token
+
+  /auth/logout:
+    post:
+      summary: Revoke current session refresh token
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Session revoked
+        "401":
+          description: Missing or invalid access token
+
+  /auth/logout-all:
+    post:
+      summary: Revoke all refresh tokens for the authenticated user
+      operationId: logoutAll
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: All sessions revoked
+        "401":
+          description: Missing or invalid access token
+
+  /auth/forgot-password:
+    post:
+      summary: Request a password reset email
+      security: []
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        "200":
+          description: "Always returns 200 regardless of email existence (FR-006, FR-012)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "If an account with that email exists, a reset link has been sent."
+        "429":
+          description: Rate limit exceeded
+
+  /auth/reset-password:
+    post:
+      summary: Complete password reset using token from email
+      security: []
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password updated and all sessions revoked
+        "400":
+          description: Token expired, already used, or invalid
