@@ -1,0 +1,133 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { IdeaSchema, type IdeaInput } from '@/lib/validations'
+
+const CATEGORIES = [
+  'Technical',
+  'Process Improvement',
+  'Client Solutions',
+  'Cost Reduction',
+  'Employee Experience',
+] as const
+
+export default function IdeaForm() {
+  const router = useRouter()
+  const [file, setFile] = useState<File | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<IdeaInput>({ resolver: zodResolver(IdeaSchema) })
+
+  const onSubmit = async (data: IdeaInput) => {
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        toast.error(err.error ?? 'Failed to submit idea')
+        return
+      }
+      const { idea } = await res.json()
+
+      if (file) {
+        const form = new FormData()
+        form.append('file', file)
+        const uploadRes = await fetch(`/api/ideas/${idea.id}/attachments`, {
+          method: 'POST',
+          body: form,
+        })
+        if (!uploadRes.ok) {
+          toast.warning('Idea submitted but file upload failed')
+        }
+      }
+
+      toast.success('Idea submitted!')
+      router.push('/dashboard')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="space-y-1.5">
+        <Label htmlFor="title">Title</Label>
+        <Input id="title" {...register('title')} placeholder="Brief idea title" />
+        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          {...register('description')}
+          placeholder="Describe your idea in detail (max 2000 characters)"
+          rows={6}
+        />
+        {errors.description && (
+          <p className="text-sm text-destructive">{errors.description.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Category</Label>
+        <Select onValueChange={(val) => setValue('category', val as IdeaInput['category'])}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.category && (
+          <p className="text-sm text-destructive">{errors.category.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="attachment">Attachment (optional)</Label>
+        <Input
+          id="attachment"
+          type="file"
+          accept=".pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.gif,.mp4"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        <p className="text-xs text-muted-foreground">
+          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4
+        </p>
+      </div>
+
+      <Button type="submit" disabled={submitting} className="w-full">
+        {submitting ? 'Submitting…' : 'Submit Idea'}
+      </Button>
+    </form>
+  )
+}
