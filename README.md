@@ -1,6 +1,6 @@
 # InnovatEPAM Portal
 
-A comprehensive employee innovation management platform built with Next.js, React, Tailwind CSS, shadcn/ui, and SQLite. Employees submit creative ideas, evaluators review and decide, and the organization tracks innovation from submission to decision.
+An employee innovation management portal that lets EPAM staff submit ideas, attach supporting files, and receive structured evaluations from admins. Built with Next.js 14 App Router, shadcn/ui, Tailwind CSS v4, and SQLite.
 
 Built as part of the EPAM A201 AI-native development course using Spec-Driven Development (SDD) with GitHub SpecKit and GitHub Copilot.
 
@@ -8,51 +8,43 @@ Built as part of the EPAM A201 AI-native development course using Spec-Driven De
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 14+ (App Router) |
-| UI | React 18 + shadcn/ui |
-| Styling | Tailwind CSS v4 (`@theme` tokens) |
-| Database | SQLite via `better-sqlite3` |
-| Auth | NextAuth.js v5 (Credentials + JWT) |
-| Validation | Zod |
-| Date formatting | date-fns |
+| Layer           | Technology                                                 |
+| --------------- | ---------------------------------------------------------- |
+| Framework       | Next.js 14+ (App Router, server components)                |
+| UI Components   | shadcn/ui (New York style)                                 |
+| Styling         | Tailwind CSS v4 (`@theme` design tokens in `globals.css`)  |
+| Database        | SQLite via `better-sqlite3` (synchronous)                  |
+| Auth            | NextAuth.js v5 — Credentials provider, JWT sessions (24 h) |
+| Validation      | Zod — schemas shared between client and server             |
+| Date formatting | date-fns                                                   |
+| Notifications   | Sonner (toast)                                             |
 
 ---
 
 ## Prerequisites
 
 - Node.js 20+
-- npm 9+
+- npm 10+
 
 ---
 
 ## Setup
 
 ```bash
-# 1. Clone the repo and switch to the project branch
-git clone https://github.com/yagmursudeates/EpamAiBootcamp.git
-cd EpamAiBootcamp
-git checkout course_project
-
-# 2. Go to the app directory
-cd innovatepam
-
-# 3. Install dependencies
+# 1. Install dependencies
 npm install
 
-# 4. Create environment file
-cp .env.example .env.local
-# Then edit .env.local and set NEXTAUTH_SECRET (see below)
+# 2. Create environment file
+echo "NEXTAUTH_SECRET=$(openssl rand -base64 32)" > .env.local
+echo "NEXTAUTH_URL=http://localhost:3000" >> .env.local
 
-# 5. Generate a secret
-openssl rand -base64 32
-# Paste the output as NEXTAUTH_SECRET in .env.local
+# 3. Create uploads directory
+mkdir -p uploads
 
-# 6. Seed the database with test accounts
+# 4. Seed the database with test accounts
 npx tsx src/lib/db/seed.ts
 
-# 7. Start the development server
+# 5. Start the development server
 npm run dev
 ```
 
@@ -62,53 +54,82 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Test Accounts
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@epam.com` | `Admin1234!` |
-| Submitter | `alice@epam.com` | `Test1234!` |
-| Submitter | `bob@epam.com` | `Test1234!` |
+| Role      | Email            | Password     |
+| --------- | ---------------- | ------------ |
+| Admin     | `admin@epam.com` | `Admin1234!` |
+| Submitter | `alice@epam.com` | `Test1234!`  |
+| Submitter | `bob@epam.com`   | `Test1234!`  |
 
 ---
 
 ## Features
 
-### Phase 1 — Core Portal
-- User registration and login
-- Role-based access control (submitter / admin)
-- Idea submission with single file attachment
-- Idea listing and detail view with status tracking
-- Admin evaluation workflow (accept / reject / under review)
+### Phase 1 — Core Portal (US1–US5)
 
-### Phase 2 — Smart Submission Forms *(planned)*
-- Dynamic form fields based on idea category
+- Employee registration and role-based login (`submitter` → `/dashboard`, `admin` → `/admin`)
+- Idea submission with optional single file attachment (PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4; ≤ 10 MB)
+- Submitter dashboard — personal idea list with colour-coded status badges
+- Idea detail view — full content, attachment download, evaluation notes
+- Admin idea listing with status filter
+- Admin evaluation workflow — accept / reject / under review with notes; re-evaluation supported
 
-### Phase 3 — Multi-Media Support *(planned)*
-- Multiple file attachments with inline image preview
+### Phase 2 — Smart Submission Forms (US6) _(planned)_
 
-### Phase 4 — Draft Management *(planned)*
-- Save, edit, and submit idea drafts
+- Dynamic category-specific fields revealed on category selection
+
+### Phase 3 — Multi-Media Attachments (US7) _(planned)_
+
+- Up to 5 files per idea; inline image thumbnails on detail page
+
+### Phase 4 — Draft Management (US8) _(planned)_
+
+- Save, edit, and submit idea drafts across sessions
 
 ---
 
 ## Project Structure
 
 ```
-innovatepam/
-├── src/
-│   ├── app/                  # Next.js App Router pages and API routes
-│   │   ├── (auth)/           # Login and register pages
-│   │   ├── (submitter)/      # Dashboard and submit pages
-│   │   ├── (admin)/          # Admin panel and evaluation pages
-│   │   ├── ideas/[id]/       # Shared idea detail view
-│   │   └── api/              # API route handlers
-│   ├── components/           # Reusable React components
-│   └── lib/
-│       ├── db/               # SQLite schema, connection, seed
-│       ├── auth.ts           # NextAuth config
-│       ├── validations.ts    # Zod schemas
-│       └── utils.ts          # cn(), formatDate()
-└── uploads/                  # File storage (gitignored)
+src/
+├── app/
+│   ├── (auth)/               # /login, /register
+│   ├── (submitter)/          # /dashboard, /submit  (any authenticated user)
+│   ├── (admin)/admin/        # /admin, /admin/ideas, /admin/ideas/[id]/evaluate
+│   ├── ideas/[id]/           # Shared read-only idea detail view
+│   └── api/                  # Route handlers (users, ideas, evaluate, attachments, auth)
+├── components/
+│   ├── ui/                   # shadcn/ui generated components (do not edit)
+│   ├── IdeaCard.tsx
+│   ├── IdeaForm.tsx
+│   ├── StatusBadge.tsx
+│   ├── EvaluationForm.tsx
+│   ├── StatusFilter.tsx
+│   ├── Navbar.tsx
+│   └── AttachmentList.tsx
+└── lib/
+    ├── db/                   # schema.sql, better-sqlite3 singleton, seed.ts
+    ├── auth.ts               # NextAuth config
+    ├── validations.ts        # Zod schemas (RegisterSchema, LoginSchema, IdeaSchema, EvaluationSchema)
+    └── utils.ts              # cn(), formatDate(), formatDateTime()
+
+uploads/                      # File storage — gitignored, outside public/
+innovatepam.db                # SQLite database — gitignored
 ```
+
+---
+
+## API Routes
+
+| Method | Path                                         | Description                                       |
+| ------ | -------------------------------------------- | ------------------------------------------------- |
+| POST   | `/api/users`                                 | Register new account                              |
+| GET    | `/api/ideas`                                 | List ideas (submitter: own; admin: all non-draft) |
+| POST   | `/api/ideas`                                 | Create idea (add `?draft=true` for draft)         |
+| GET    | `/api/ideas/[id]`                            | Idea detail with evaluation and attachments       |
+| PATCH  | `/api/ideas/[id]`                            | Update draft idea                                 |
+| POST   | `/api/ideas/[id]/evaluate`                   | Upsert evaluation (admin only)                    |
+| POST   | `/api/ideas/[id]/attachments`                | Upload file attachment                            |
+| GET    | `/api/ideas/[id]/attachments/[attachmentId]` | Download attachment (owner + admins)              |
 
 ---
 
@@ -116,12 +137,26 @@ innovatepam/
 
 This project was built spec-first using [GitHub SpecKit](https://github.com/github/spec-kit):
 
-| File | Purpose |
-|---|---|
-| [CONSTITUTION.md](CONSTITUTION.md) | Project principles and non-negotiables |
-| [spec.md](spec.md) | User stories and acceptance criteria |
-| [plan.md](plan.md) | Technical architecture and design decisions |
-| [tasks.md](tasks.md) | Actionable implementation task list |
+| Artifact                                                                                       | Purpose                                                            |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [CONSTITUTION.md](CONSTITUTION.md)                                                             | Non-negotiable project principles — supersedes all other patterns  |
+| [specs/001-innovatepam-portal/spec.md](specs/001-innovatepam-portal/spec.md)                   | 8 user stories, 20 FRs, 13 resolved clarifications                 |
+| [specs/001-innovatepam-portal/plan.md](specs/001-innovatepam-portal/plan.md)                   | Architecture, schema, auth/upload flows, 8 implementation phases   |
+| [specs/001-innovatepam-portal/data-model.md](specs/001-innovatepam-portal/data-model.md)       | Entity definitions, relationships, status lifecycle, design tokens |
+| [specs/001-innovatepam-portal/contracts/api.md](specs/001-innovatepam-portal/contracts/api.md) | Full REST API contract with request/response shapes                |
+| [specs/001-innovatepam-portal/quickstart.md](specs/001-innovatepam-portal/quickstart.md)       | Setup guide and per-story manual test walkthrough                  |
+| [specs/001-innovatepam-portal/tasks.md](specs/001-innovatepam-portal/tasks.md)                 | 66 actionable tasks across 11 phases                               |
+
+---
+
+## Before Every Commit
+
+```bash
+npm run lint
+npm run build
+```
+
+Both must pass with zero errors.
 
 ---
 
