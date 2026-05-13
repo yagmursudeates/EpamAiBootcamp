@@ -38,3 +38,12 @@ CREATE TABLE IF NOT EXISTS evaluations (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  idea_id TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
+  message TEXT NOT NULL,
+  is_read INTEGER NOT NULL DEFAULT 0 CHECK(is_read IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

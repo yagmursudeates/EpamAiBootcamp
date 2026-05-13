@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -36,6 +37,8 @@ export default function Navbar() {
               <Link href="/submit">+ New Idea</Link>
             </Button>
           )}
+
+          {session?.user && <NotificationBell />}
 
           {session?.user ? (
             <DropdownMenu>

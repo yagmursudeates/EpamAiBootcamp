@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { auth } from '@/lib/auth'
 import db from '@/lib/db'
 import { EvaluationSchema } from '@/lib/validations'
+import { buildNotificationMessage } from '@/lib/notifications'
 import type { DbIdea, DbEvaluation } from '@/types/db'
 
 interface RouteParams {
@@ -35,28 +36,36 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     const { decision, notes } = parsed.data
 
-    // Upsert evaluation (CL-011)
-    const existing = db
-      .prepare('SELECT id FROM evaluations WHERE idea_id = ?')
-      .get(ideaId) as DbEvaluation | undefined
+    // Upsert evaluation + sync status + create notification — all in one transaction
+    const transact = db.transaction(() => {
+      const existing = db
+        .prepare('SELECT id FROM evaluations WHERE idea_id = ?')
+        .get(ideaId) as DbEvaluation | undefined
 
-    if (existing) {
-      db.prepare(
-        `UPDATE evaluations
-         SET decision = ?, notes = ?, evaluator_id = ?, updated_at = datetime('now')
-         WHERE idea_id = ?`
-      ).run(decision, notes ?? null, session.user.id, ideaId)
-    } else {
-      db.prepare(
-        `INSERT INTO evaluations (id, idea_id, evaluator_id, decision, notes)
-         VALUES (?, ?, ?, ?, ?)`
-      ).run(uuidv4(), ideaId, session.user.id, decision, notes ?? null)
-    }
+      if (existing) {
+        db.prepare(
+          `UPDATE evaluations
+           SET decision = ?, notes = ?, evaluator_id = ?, updated_at = datetime('now')
+           WHERE idea_id = ?`
+        ).run(decision, notes ?? null, session.user.id, ideaId)
+      } else {
+        db.prepare(
+          `INSERT INTO evaluations (id, idea_id, evaluator_id, decision, notes)
+           VALUES (?, ?, ?, ?, ?)`
+        ).run(uuidv4(), ideaId, session.user.id, decision, notes ?? null)
+      }
 
-    // Sync idea status with decision
-    db.prepare(
-      `UPDATE ideas SET status = ?, updated_at = datetime('now') WHERE id = ?`
-    ).run(decision, ideaId)
+      db.prepare(
+        `UPDATE ideas SET status = ?, updated_at = datetime('now') WHERE id = ?`
+      ).run(decision, ideaId)
+
+      const message = buildNotificationMessage(decision, idea.title)
+      db.prepare(
+        `INSERT INTO notifications (id, user_id, idea_id, message) VALUES (?, ?, ?, ?)`
+      ).run(uuidv4(), idea.submitter_id, ideaId, message)
+    })
+
+    transact()
 
     return Response.json({ message: 'Evaluation saved' })
   } catch {
