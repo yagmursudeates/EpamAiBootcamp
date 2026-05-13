@@ -1,0 +1,79 @@
+.column {
+  background: #f4f6fb;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+  transition: background 0.15s;
+  border: 2px solid transparent;
+}
+
+.columnOver {
+  background: #e8edff;
+  border-color: #4f6ef7;
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.columnTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.badge {
+  background: #4f6ef7;
+  color: #fff;
+  border-radius: 12px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 48px;
+}
+
+.emptyMsg {
+  color: #aaa;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.addBtn {
+  background: transparent;
+  border: 1.5px dashed #b0bfff;
+  color: #4f6ef7;
+  border-radius: 7px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+}
+
+.addBtn:hover {
+  background: #eef1ff;
+  border-color: #4f6ef7;
+}
+
+.addBtn:focus-visible {
+  outline: 3px solid #4f6ef7;
+  outline-offset: 2px;
+}
