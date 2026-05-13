@@ -4,7 +4,8 @@ import { auth } from '@/lib/auth'
 import db from '@/lib/db'
 import { EvaluationSchema } from '@/lib/validations'
 import { buildNotificationMessage } from '@/lib/notifications'
-import type { DbIdea, DbEvaluation } from '@/types/db'
+import { sendEvaluationEmail } from '@/lib/mailer'
+import type { DbIdea, DbEvaluation, DbUser } from '@/types/db'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -66,6 +67,23 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     })
 
     transact()
+
+    // Send email notification — fire-and-forget (non-blocking)
+    const submitter = db
+      .prepare('SELECT email FROM users WHERE id = ?')
+      .get(idea.submitter_id) as Pick<DbUser, 'email'> | undefined
+
+    if (submitter) {
+      const message = buildNotificationMessage(decision, idea.title)
+      const humanDecision: Record<string, string> = {
+        accepted: 'accepted',
+        rejected: 'rejected',
+        under_review: 'is now under review',
+      }
+      const subject = `[InnovatEPAM] Your idea '${idea.title}' was ${humanDecision[decision] ?? decision}`
+      const body = `${message}\n\nView your idea: ${process.env.NEXTAUTH_URL ?? 'http://localhost:3000'}/ideas/${ideaId}`
+      sendEvaluationEmail(submitter.email, subject, body).catch(console.error)
+    }
 
     return Response.json({ message: 'Evaluation saved' })
   } catch {
