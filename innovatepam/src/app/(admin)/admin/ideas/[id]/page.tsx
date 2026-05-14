@@ -95,17 +95,18 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
       {attachments.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Attachment</CardTitle>
+            <CardTitle className="text-base">Attachments</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {attachments.map((att) => (
-              <a
-                key={att.id}
-                href={`/api/attachments/${att.id}/download`}
-                className="text-sm text-blue-600 underline"
-              >
-                {att.filename}
-              </a>
+              <div key={att.id}>
+                <a
+                  href={`/api/attachments/${att.id}/download`}
+                  className="text-sm text-blue-600 underline"
+                >
+                  {att.filename}
+                </a>
+              </div>
             ))}
           </CardContent>
         </Card>

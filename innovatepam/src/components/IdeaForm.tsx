@@ -29,7 +29,7 @@ const CATEGORIES = [
 
 export default function IdeaForm() {
   const router = useRouter()
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [metadata, setMetadata] = useState<Record<string, string>>({})
@@ -70,7 +70,7 @@ export default function IdeaForm() {
       }
       const { idea } = await res.json()
 
-      if (file) {
+      for (const file of files) {
         const form = new FormData()
         form.append('file', file)
         const uploadRes = await fetch(`/api/ideas/${idea.id}/attachments`, {
@@ -78,7 +78,7 @@ export default function IdeaForm() {
           body: form,
         })
         if (!uploadRes.ok) {
-          toast.warning('Idea submitted but file upload failed')
+          toast.warning(`Failed to upload "${file.name}"`)
         }
       }
 
@@ -179,15 +179,23 @@ export default function IdeaForm() {
       )}
 
       <div className="space-y-1.5">
-        <Label htmlFor="attachment">Attachment (optional)</Label>
+        <Label htmlFor="attachment">Attachments (optional, up to 5 files)</Label>
         <Input
           id="attachment"
           type="file"
+          multiple
           accept=".pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.gif,.mp4"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
         />
+        {files.length > 0 && (
+          <ul className="text-xs text-muted-foreground space-y-0.5">
+            {files.map((f) => (
+              <li key={f.name}>• {f.name}</li>
+            ))}
+          </ul>
+        )}
         <p className="text-xs text-muted-foreground">
-          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4
+          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4 · Max 20 MB each
         </p>
       </div>
 

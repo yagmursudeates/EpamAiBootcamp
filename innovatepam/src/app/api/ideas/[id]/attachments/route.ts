@@ -4,20 +4,8 @@ import path from 'path'
 import fs from 'fs'
 import { auth } from '@/lib/auth'
 import db from '@/lib/db'
-import type { DbIdea, DbAttachment } from '@/types/db'
-
-const ALLOWED_MIMETYPES = new Set([
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'image/png',
-  'image/jpeg',
-  'image/gif',
-  'video/mp4',
-])
-
-const MAX_SIZE = 20 * 1024 * 1024 // 20 MB
+import { ALLOWED_MIMETYPES, MAX_FILE_SIZE, MAX_ATTACHMENTS_PER_IDEA } from '@/lib/attachmentConfig'
+import type { DbIdea } from '@/types/db'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -41,13 +29,16 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Only one attachment allowed per idea
-    const existing = db
-      .prepare('SELECT id FROM attachments WHERE idea_id = ?')
-      .get(ideaId) as DbAttachment | undefined
+    // Enforce max attachments per idea
+    const count = (
+      db.prepare('SELECT COUNT(*) as n FROM attachments WHERE idea_id = ?').get(ideaId) as { n: number }
+    ).n
 
-    if (existing) {
-      return Response.json({ error: 'Idea already has an attachment' }, { status: 409 })
+    if (count >= MAX_ATTACHMENTS_PER_IDEA) {
+      return Response.json(
+        { error: `Maximum ${MAX_ATTACHMENTS_PER_IDEA} attachments allowed per idea` },
+        { status: 409 }
+      )
     }
 
     const formData = await req.formData()
@@ -59,7 +50,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return Response.json({ error: 'File type not allowed' }, { status: 400 })
     }
 
-    if (file.size > MAX_SIZE) {
+    if (file.size > MAX_FILE_SIZE) {
       return Response.json({ error: 'File too large (max 20MB)' }, { status: 400 })
     }
 
