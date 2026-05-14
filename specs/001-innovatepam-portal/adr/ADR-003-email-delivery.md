@@ -12,6 +12,7 @@
 Phase 2 delivered in-app notifications. ADR-002 deferred email delivery with the note: _"When email is implemented (Phase 3+), add a `nodemailer` transport called from the same evaluate route handler after the DB write."_ Phase 3 now implements that path.
 
 The key questions are:
+
 1. Which SMTP provider to use for the course environment?
 2. Should email sending block the HTTP response?
 3. How do we keep the transport testable without hitting a real mail server?
@@ -26,13 +27,13 @@ Use **nodemailer with an Ethereal test account** for SMTP transport. Send email 
 
 ## Options Considered
 
-| Option                        | Pro                                         | Con                                                   | Decision      |
-| ----------------------------- | ------------------------------------------- | ----------------------------------------------------- | ------------- |
-| Nodemailer + Ethereal         | Zero cost, captures emails in web UI, easy  | Not a real mail server; emails not delivered to inbox | ✓ Accepted    |
-| Nodemailer + real SMTP        | Production-realistic                        | Requires credentials, billing, spam risk              | Deferred      |
-| Resend / SendGrid SDK         | Modern API, good DX                         | External dependency, API key required                 | Deferred      |
-| Log-only mock                 | Trivial to implement                        | No way to verify email content outside tests          | Rejected      |
-| AWS SES                       | Scalable                                    | Requires AWS account, IAM config, overkill for course | Deferred      |
+| Option                 | Pro                                        | Con                                                   | Decision   |
+| ---------------------- | ------------------------------------------ | ----------------------------------------------------- | ---------- |
+| Nodemailer + Ethereal  | Zero cost, captures emails in web UI, easy | Not a real mail server; emails not delivered to inbox | ✓ Accepted |
+| Nodemailer + real SMTP | Production-realistic                       | Requires credentials, billing, spam risk              | Deferred   |
+| Resend / SendGrid SDK  | Modern API, good DX                        | External dependency, API key required                 | Deferred   |
+| Log-only mock          | Trivial to implement                       | No way to verify email content outside tests          | Rejected   |
+| AWS SES                | Scalable                                   | Requires AWS account, IAM config, overkill for course | Deferred   |
 
 ---
 
@@ -56,23 +57,22 @@ export async function sendEvaluationEmail(to, subject, text) {
 ### Call site (`POST /api/ideas/[id]/evaluate`)
 
 ```ts
-transact()   // DB write completes synchronously
+transact(); // DB write completes synchronously
 
-sendEvaluationEmail(submitterEmail, subject, body)
-  .catch(console.error)   // FR-E04: non-blocking, FR-E05: errors logged
+sendEvaluationEmail(submitterEmail, subject, body).catch(console.error); // FR-E04: non-blocking, FR-E05: errors logged
 
-return Response.json({ message: 'Evaluation saved' })
+return Response.json({ message: "Evaluation saved" });
 ```
 
 ### Environment variables
 
-| Variable     | Example value            |
-| ------------ | ------------------------ |
-| EMAIL_HOST   | smtp.ethereal.email      |
-| EMAIL_PORT   | 587                      |
-| EMAIL_USER   | \<ethereal username\>    |
-| EMAIL_PASS   | \<ethereal password\>    |
-| EMAIL_FROM   | InnovatEPAM \<noreply@innovatepam.local\> |
+| Variable   | Example value                             |
+| ---------- | ----------------------------------------- |
+| EMAIL_HOST | smtp.ethereal.email                       |
+| EMAIL_PORT | 587                                       |
+| EMAIL_USER | \<ethereal username\>                     |
+| EMAIL_PASS | \<ethereal password\>                     |
+| EMAIL_FROM | InnovatEPAM \<noreply@innovatepam.local\> |
 
 ---
 

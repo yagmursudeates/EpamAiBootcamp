@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import db from '@/lib/db'
 import IdeaCard from '@/components/IdeaCard'
 import StatusFilter from '@/components/StatusFilter'
+import BlindModeToggle from '@/components/BlindModeToggle'
+import { isBlindMode } from '@/lib/settings'
 import { Suspense } from 'react'
 import type { DbIdea } from '@/types/db'
 
@@ -17,6 +19,7 @@ export default async function AdminIdeasPage({ searchParams }: PageProps) {
   if (!session || session.user.role !== 'admin') redirect('/dashboard')
 
   const { status } = await searchParams
+  const blindMode = isBlindMode()
 
   let ideas: (DbIdea & { submitter_name: string })[]
 
@@ -44,7 +47,10 @@ export default async function AdminIdeasPage({ searchParams }: PageProps) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">All Ideas</h1>
-        <span className="text-muted-foreground text-sm">{ideas.length} ideas</span>
+        <div className="flex items-center gap-4">
+          <BlindModeToggle enabled={blindMode} />
+          <span className="text-muted-foreground text-sm">{ideas.length} ideas</span>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -62,7 +68,7 @@ export default async function AdminIdeasPage({ searchParams }: PageProps) {
           {ideas.map((idea) => (
             <IdeaCard
               key={idea.id}
-              idea={idea}
+              idea={{ ...idea, submitter_name: blindMode ? 'Anonymous' : idea.submitter_name }}
               href={`/admin/ideas/${idea.id}`}
             />
           ))}

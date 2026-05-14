@@ -16,15 +16,15 @@ When an admin evaluates an idea, the submitter receives an in-app notification i
 
 ## Functional Requirements
 
-| ID | Requirement |
-|----|-------------|
+| ID     | Requirement                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------------- |
 | FR-N01 | A notification is created for the idea submitter whenever an evaluation is saved (under_review, accepted, rejected). |
-| FR-N02 | The Navbar bell icon shows an unread count badge. Badge is hidden when count is 0. |
-| FR-N03 | Clicking the bell opens a dropdown listing all notifications (newest first). |
-| FR-N04 | Each notification shows: message text, idea title, time since creation, and read/unread state. |
-| FR-N05 | Clicking a notification marks it as read and navigates to the idea detail page. |
-| FR-N06 | Notifications are user-scoped: each user sees only their own. |
-| FR-N07 | A "Mark all as read" action clears the unread badge. |
+| FR-N02 | The Navbar bell icon shows an unread count badge. Badge is hidden when count is 0.                                   |
+| FR-N03 | Clicking the bell opens a dropdown listing all notifications (newest first).                                         |
+| FR-N04 | Each notification shows: message text, idea title, time since creation, and read/unread state.                       |
+| FR-N05 | Clicking a notification marks it as read and navigates to the idea detail page.                                      |
+| FR-N06 | Notifications are user-scoped: each user sees only their own.                                                        |
+| FR-N07 | A "Mark all as read" action clears the unread badge.                                                                 |
 
 ---
 
@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 ## API Contracts
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/notifications` | Any authenticated | List notifications for current user (newest first) |
-| PATCH | `/api/notifications/[id]` | Owner only | Mark single notification as read |
-| PATCH | `/api/notifications` | Any authenticated | Mark all as read |
+| Method | Path                      | Auth              | Description                                        |
+| ------ | ------------------------- | ----------------- | -------------------------------------------------- |
+| GET    | `/api/notifications`      | Any authenticated | List notifications for current user (newest first) |
+| PATCH  | `/api/notifications/[id]` | Owner only        | Mark single notification as read                   |
+| PATCH  | `/api/notifications`      | Any authenticated | Mark all as read                                   |
 
 ---
 

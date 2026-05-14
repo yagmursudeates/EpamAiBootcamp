@@ -62,6 +62,17 @@ if (!globalForDb._db) {
     db.pragma('foreign_keys = ON')
   }
 
+  // Phase 6 migration: settings table for blind mode
+  const hasSettings = db
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'")
+    .get()
+  if (!hasSettings) {
+    db.exec(`
+      CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '');
+      INSERT INTO settings (key, value) VALUES ('blind_mode', '0');
+    `)
+  }
+
   globalForDb._db = db
 }
 

@@ -19,30 +19,30 @@ both submitters and admins.
 
 ## Functional Requirements
 
-| ID      | Requirement                                                                                          |
-| ------- | ---------------------------------------------------------------------------------------------------- |
-| FR-S01  | Selecting a category reveals exactly 2 additional fields specific to that category.                  |
-| FR-S02  | Switching category clears the previously filled dynamic field values.                                |
-| FR-S03  | Dynamic field values are submitted as `categoryMetadata` and stored in `category_metadata` as JSON.  |
-| FR-S04  | Dynamic fields are optional — the form can be submitted without filling them.                        |
-| FR-S05  | The idea detail page (submitter + admin) displays filled category metadata as labelled key-value rows.|
+| ID     | Requirement                                                                                            |
+| ------ | ------------------------------------------------------------------------------------------------------ |
+| FR-S01 | Selecting a category reveals exactly 2 additional fields specific to that category.                    |
+| FR-S02 | Switching category clears the previously filled dynamic field values.                                  |
+| FR-S03 | Dynamic field values are submitted as `categoryMetadata` and stored in `category_metadata` as JSON.    |
+| FR-S04 | Dynamic fields are optional — the form can be submitted without filling them.                          |
+| FR-S05 | The idea detail page (submitter + admin) displays filled category metadata as labelled key-value rows. |
 
 ---
 
 ## Category Field Definitions
 
-| Category             | Field key            | Label                       | Type     | Options (if select)                                              |
-| -------------------- | -------------------- | --------------------------- | -------- | ---------------------------------------------------------------- |
-| Technical            | `techStack`          | Technology / Stack          | text     | —                                                                |
-| Technical            | `estimatedTimeline`  | Estimated Timeline          | select   | 1 week, 1 month, 3 months, 6+ months                            |
-| Process Improvement  | `currentProcess`     | Current Process Description | textarea | —                                                                |
-| Process Improvement  | `estimatedGain`      | Estimated Efficiency Gain   | text     | —                                                                |
-| Client Solutions     | `clientIndustry`     | Client Industry / Sector    | text     | —                                                                |
-| Client Solutions     | `problemSolved`      | Problem Being Solved        | text     | —                                                                |
-| Cost Reduction       | `currentCost`        | Current Annual Cost         | text     | —                                                                |
-| Cost Reduction       | `projectedSavings`   | Projected Savings           | text     | —                                                                |
-| Employee Experience  | `targetAudience`     | Target Audience             | text     | —                                                                |
-| Employee Experience  | `impactArea`         | Impact Area                 | select   | Wellbeing, Productivity, Learning & Development, Diversity & Inclusion |
+| Category            | Field key           | Label                       | Type     | Options (if select)                                                    |
+| ------------------- | ------------------- | --------------------------- | -------- | ---------------------------------------------------------------------- |
+| Technical           | `techStack`         | Technology / Stack          | text     | —                                                                      |
+| Technical           | `estimatedTimeline` | Estimated Timeline          | select   | 1 week, 1 month, 3 months, 6+ months                                   |
+| Process Improvement | `currentProcess`    | Current Process Description | textarea | —                                                                      |
+| Process Improvement | `estimatedGain`     | Estimated Efficiency Gain   | text     | —                                                                      |
+| Client Solutions    | `clientIndustry`    | Client Industry / Sector    | text     | —                                                                      |
+| Client Solutions    | `problemSolved`     | Problem Being Solved        | text     | —                                                                      |
+| Cost Reduction      | `currentCost`       | Current Annual Cost         | text     | —                                                                      |
+| Cost Reduction      | `projectedSavings`  | Projected Savings           | text     | —                                                                      |
+| Employee Experience | `targetAudience`    | Target Audience             | text     | —                                                                      |
+| Employee Experience | `impactArea`        | Impact Area                 | select   | Wellbeing, Productivity, Learning & Development, Diversity & Inclusion |
 
 ---
 

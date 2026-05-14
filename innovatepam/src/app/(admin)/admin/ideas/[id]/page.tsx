@@ -7,6 +7,7 @@ import EvaluationForm from '@/components/EvaluationForm'
 import DeleteIdeaButton from '@/components/DeleteIdeaButton'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { FIELD_LABEL_MAP } from '@/lib/categoryFields'
+import { isBlindMode } from '@/lib/settings'
 import type { DbIdea, DbAttachment, DbEvaluation, DbStageHistory } from '@/types/db'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,7 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
   if (!session || session.user.role !== 'admin') redirect('/dashboard')
 
   const { id } = await params
+  const blindMode = isBlindMode()
 
   const idea = db
     .prepare(
@@ -62,7 +64,11 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
         <div>
           <h1 className="text-2xl font-bold">{idea.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            By {idea.submitter_name} · {formatDate(idea.created_at)}
+            {blindMode ? (
+              <span className="italic">Submitted anonymously · {formatDate(idea.created_at)}</span>
+            ) : (
+              <>By {idea.submitter_name} · {formatDate(idea.created_at)}</>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">

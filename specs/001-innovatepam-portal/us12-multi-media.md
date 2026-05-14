@@ -18,16 +18,16 @@ by both the submitter and admin. The single-attachment restriction is removed.
 
 ## Functional Requirements
 
-| ID      | Requirement                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------------- |
-| FR-M01  | The submission form accepts multiple files via a single file input (`multiple` attribute).               |
-| FR-M02  | Up to 5 files can be attached per idea. Attempting a 6th returns a 409 error.                           |
-| FR-M03  | Each file must be one of the supported types: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4.               |
-| FR-M04  | Each file must be ≤ 20 MB. Oversized files are rejected individually.                                   |
-| FR-M05  | All selected files are uploaded sequentially after the idea is created.                                  |
-| FR-M06  | If one file upload fails, the others still proceed; the user sees a warning for failed files.            |
-| FR-M07  | The idea detail page (submitter + admin) lists all attachments with filename and a download link each.   |
-| FR-M08  | The existing download endpoint (`GET /api/attachments/[id]/download`) is unchanged.                     |
+| ID     | Requirement                                                                                            |
+| ------ | ------------------------------------------------------------------------------------------------------ |
+| FR-M01 | The submission form accepts multiple files via a single file input (`multiple` attribute).             |
+| FR-M02 | Up to 5 files can be attached per idea. Attempting a 6th returns a 409 error.                          |
+| FR-M03 | Each file must be one of the supported types: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4.               |
+| FR-M04 | Each file must be ≤ 20 MB. Oversized files are rejected individually.                                  |
+| FR-M05 | All selected files are uploaded sequentially after the idea is created.                                |
+| FR-M06 | If one file upload fails, the others still proceed; the user sees a warning for failed files.          |
+| FR-M07 | The idea detail page (submitter + admin) lists all attachments with filename and a download link each. |
+| FR-M08 | The existing download endpoint (`GET /api/attachments/[id]/download`) is unchanged.                    |
 
 ---
 

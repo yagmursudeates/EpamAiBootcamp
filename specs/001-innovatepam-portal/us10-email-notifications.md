@@ -16,16 +16,16 @@ When an admin evaluates an idea, the submitter receives an email in addition to 
 
 ## Functional Requirements
 
-| ID      | Requirement                                                                                                                         |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| FR-E01  | After every successful evaluation, an email is sent to the idea submitter's registered address.                                     |
-| FR-E02  | The email subject is: `[InnovatEPAM] Your idea '{title}' was {decision}` (using human-readable decision text).                     |
-| FR-E03  | The email body includes: the notification message, the idea title, and a direct link to the idea detail page.                       |
-| FR-E04  | Email delivery is non-blocking — the API response is returned before/regardless of email send outcome.                              |
-| FR-E05  | If email sending fails (SMTP error, missing config), the error is logged to the console and the HTTP response is unaffected.        |
-| FR-E06  | SMTP credentials are read from environment variables: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`.         |
-| FR-E07  | When `EMAIL_HOST` is not set, email sending is skipped silently (allows running the app without any email config).                  |
-| FR-E08  | The email transport is injected via a module-level singleton so tests can replace it with a mock without monkey-patching.           |
+| ID     | Requirement                                                                                                                  |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| FR-E01 | After every successful evaluation, an email is sent to the idea submitter's registered address.                              |
+| FR-E02 | The email subject is: `[InnovatEPAM] Your idea '{title}' was {decision}` (using human-readable decision text).               |
+| FR-E03 | The email body includes: the notification message, the idea title, and a direct link to the idea detail page.                |
+| FR-E04 | Email delivery is non-blocking — the API response is returned before/regardless of email send outcome.                       |
+| FR-E05 | If email sending fails (SMTP error, missing config), the error is logged to the console and the HTTP response is unaffected. |
+| FR-E06 | SMTP credentials are read from environment variables: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`.  |
+| FR-E07 | When `EMAIL_HOST` is not set, email sending is skipped silently (allows running the app without any email config).           |
+| FR-E08 | The email transport is injected via a module-level singleton so tests can replace it with a mock without monkey-patching.    |
 
 ---
 

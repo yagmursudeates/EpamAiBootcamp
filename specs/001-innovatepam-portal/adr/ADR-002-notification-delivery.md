@@ -16,12 +16,12 @@ Implement **in-app notifications only** for Phase 2. Email delivery is deferred.
 
 ### Rationale
 
-| Option | Pro | Con | Decision |
-|--------|-----|-----|----------|
-| Email (nodemailer + Ethereal) | Realistic | Requires SMTP config, test account, async queue | Deferred |
-| Email (mock/log-only) | Simple | No real value; misleading | Rejected |
-| In-app (SQLite + polling) | Self-contained, testable, works offline | No real-time push | ✓ Accepted |
-| WebSocket / SSE | Real-time | Significant complexity for course scope | Deferred |
+| Option                        | Pro                                     | Con                                             | Decision   |
+| ----------------------------- | --------------------------------------- | ----------------------------------------------- | ---------- |
+| Email (nodemailer + Ethereal) | Realistic                               | Requires SMTP config, test account, async queue | Deferred   |
+| Email (mock/log-only)         | Simple                                  | No real value; misleading                       | Rejected   |
+| In-app (SQLite + polling)     | Self-contained, testable, works offline | No real-time push                               | ✓ Accepted |
+| WebSocket / SSE               | Real-time                               | Significant complexity for course scope         | Deferred   |
 
 ### Implementation
 
