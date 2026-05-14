@@ -7,7 +7,7 @@ import EvaluationForm from '@/components/EvaluationForm'
 import DeleteIdeaButton from '@/components/DeleteIdeaButton'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { FIELD_LABEL_MAP } from '@/lib/categoryFields'
-import type { DbIdea, DbAttachment, DbEvaluation } from '@/types/db'
+import type { DbIdea, DbAttachment, DbEvaluation, DbStageHistory } from '@/types/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +47,14 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
        WHERE e.idea_id = ?`
     )
     .get(id) as (DbEvaluation & { evaluator_name: string }) | undefined
+
+  const stageHistory = db
+    .prepare(
+      `SELECT h.*, u.name as evaluator_name FROM review_stage_history h
+       JOIN users u ON u.id = h.evaluator_id
+       WHERE h.idea_id = ? ORDER BY h.created_at ASC`
+    )
+    .all(id) as (DbStageHistory & { evaluator_name: string })[]
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -131,11 +139,37 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
         <CardContent>
           <EvaluationForm
             ideaId={id}
-            currentDecision={evaluation?.decision}
+            currentStatus={idea.status}
             currentNotes={evaluation?.notes ?? undefined}
           />
         </CardContent>
       </Card>
+
+      {stageHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Review History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="relative border-l border-border space-y-4 pl-4">
+              {stageHistory.map((h) => (
+                <li key={h.id} className="ml-2">
+                  <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full border border-background bg-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    {formatDateTime(h.created_at)} · {h.evaluator_name}
+                  </p>
+                  <p className="text-sm font-medium">
+                    {h.from_status ?? '—'} → {h.to_status}
+                  </p>
+                  {h.notes && (
+                    <p className="text-sm text-muted-foreground mt-0.5">{h.notes}</p>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

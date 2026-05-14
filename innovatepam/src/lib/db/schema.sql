@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS ideas (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   category TEXT NOT NULL CHECK(category IN ('Technical','Process Improvement','Client Solutions','Cost Reduction','Employee Experience')),
-  status TEXT NOT NULL DEFAULT 'submitted' CHECK(status IN ('submitted','under_review','accepted','rejected','draft')),
+  status TEXT NOT NULL DEFAULT 'submitted' CHECK(status IN ('submitted','screening','under_review','accepted','rejected','draft')),
   category_metadata TEXT,
   submitter_id TEXT NOT NULL REFERENCES users(id),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
   id TEXT PRIMARY KEY,
   idea_id TEXT NOT NULL UNIQUE REFERENCES ideas(id) ON DELETE CASCADE,
   evaluator_id TEXT NOT NULL REFERENCES users(id),
-  decision TEXT NOT NULL CHECK(decision IN ('under_review','accepted','rejected')),
+  decision TEXT NOT NULL CHECK(decision IN ('screening','under_review','accepted','rejected')),
   notes TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -45,5 +45,15 @@ CREATE TABLE IF NOT EXISTS notifications (
   idea_id TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
   message TEXT NOT NULL,
   is_read INTEGER NOT NULL DEFAULT 0 CHECK(is_read IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS review_stage_history (
+  id TEXT PRIMARY KEY,
+  idea_id TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
+  from_status TEXT,
+  to_status TEXT NOT NULL,
+  evaluator_id TEXT NOT NULL REFERENCES users(id),
+  notes TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

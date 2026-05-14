@@ -33,8 +33,18 @@ export interface DbEvaluation {
   id: string
   idea_id: string
   evaluator_id: string
-  decision: 'under_review' | 'accepted' | 'rejected'
+  decision: 'screening' | 'under_review' | 'accepted' | 'rejected'
   notes: string | null
   created_at: string
   updated_at: string
+}
+
+export interface DbStageHistory {
+  id: string
+  idea_id: string
+  from_status: string | null
+  to_status: string
+  evaluator_id: string
+  notes: string | null
+  created_at: string
 }

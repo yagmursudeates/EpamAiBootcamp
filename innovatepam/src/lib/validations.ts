@@ -57,7 +57,7 @@ export const IdeaUpdateSchema = z.object({
 })
 
 export const EvaluationSchema = z.object({
-  decision: z.enum(['under_review', 'accepted', 'rejected']),
+  decision: z.enum(['screening', 'under_review', 'accepted', 'rejected']),
   notes: z.string().optional(),
 })
 

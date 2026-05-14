@@ -6,6 +6,10 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
     label: 'Submitted',
     className: 'bg-[#6B7280] text-white hover:bg-[#6B7280]',
   },
+  screening: {
+    label: 'Screening',
+    className: 'bg-[#7C3AED] text-white hover:bg-[#7C3AED]',
+  },
   under_review: {
     label: 'Under Review',
     className: 'bg-[#D97706] text-white hover:bg-[#D97706]',

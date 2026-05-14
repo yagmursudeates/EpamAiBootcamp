@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     const { decision, notes } = parsed.data
 
-    // Upsert evaluation + sync status + create notification — all in one transaction
+    // Upsert evaluation + sync status + log history + create notification — all in one transaction
     const transact = db.transaction(() => {
       const existing = db
         .prepare('SELECT id FROM evaluations WHERE idea_id = ?')
@@ -59,6 +59,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       db.prepare(
         `UPDATE ideas SET status = ?, updated_at = datetime('now') WHERE id = ?`
       ).run(decision, ideaId)
+
+      // Log stage transition history
+      db.prepare(
+        `INSERT INTO review_stage_history (id, idea_id, from_status, to_status, evaluator_id, notes)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      ).run(uuidv4(), ideaId, idea.status, decision, session.user.id, notes ?? null)
 
       const message = buildNotificationMessage(decision, idea.title)
       db.prepare(
