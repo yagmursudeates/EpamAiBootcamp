@@ -41,9 +41,9 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-semibold mb-3 text-muted-foreground">My Drafts</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {drafts.map((idea) => (
-              <div key={idea.id} className="relative">
+              <div key={idea.id} className="flex flex-col">
                 <IdeaCard idea={{ ...idea, submitter_name: undefined }} href={`/ideas/${idea.id}/edit`} />
-                <div className="absolute bottom-4 right-4 flex gap-2">
+                <div className="flex justify-end gap-2 px-1 pt-1">
                   <a
                     href={`/ideas/${idea.id}/edit`}
                     className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent h-7 px-2"
@@ -71,9 +71,9 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {submitted.map((idea) => (
-              <div key={idea.id} className="relative">
+              <div key={idea.id} className="flex flex-col">
                 <IdeaCard idea={{ ...idea, submitter_name: undefined }} href={`/ideas/${idea.id}`} />
-                <div className="absolute bottom-4 right-4">
+                <div className="flex justify-end px-1 pt-1">
                   <DeleteIdeaButton ideaId={idea.id} size="sm" />
                 </div>
               </div>
