@@ -184,7 +184,7 @@ export default function IdeaForm() {
           id="attachment"
           type="file"
           multiple
-          accept=".pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.gif,.mp4"
+          accept=".pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov"
           onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
         />
         {files.length > 0 && (
@@ -195,7 +195,7 @@ export default function IdeaForm() {
           </ul>
         )}
         <p className="text-xs text-muted-foreground">
-          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4 · Max 20 MB each
+          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, WEBP, MP4, MOV · Max 20 MB each
         </p>
       </div>
 
