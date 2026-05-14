@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { IdeaSchema, type IdeaInput } from '@/lib/validations'
+import { CATEGORY_FIELDS } from '@/lib/categoryFields'
 
 const CATEGORIES = [
   'Technical',
@@ -30,6 +31,8 @@ export default function IdeaForm() {
   const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [metadata, setMetadata] = useState<Record<string, string>>({})
 
   const {
     register,
@@ -38,13 +41,27 @@ export default function IdeaForm() {
     formState: { errors },
   } = useForm<IdeaInput>({ resolver: zodResolver(IdeaSchema) })
 
+  const handleCategoryChange = (val: string) => {
+    setValue('category', val as IdeaInput['category'])
+    setSelectedCategory(val)
+    setMetadata({})
+  }
+
+  const handleMetadataChange = (key: string, value: string) => {
+    setMetadata((prev) => ({ ...prev, [key]: value }))
+  }
+
   const onSubmit = async (data: IdeaInput) => {
     setSubmitting(true)
     try {
+      const payload = {
+        ...data,
+        categoryMetadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+      }
       const res = await fetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) {
         const err = await res.json()
@@ -72,6 +89,8 @@ export default function IdeaForm() {
     }
   }
 
+  const dynamicFields = selectedCategory ? CATEGORY_FIELDS[selectedCategory] : null
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="space-y-1.5">
@@ -95,7 +114,7 @@ export default function IdeaForm() {
 
       <div className="space-y-1.5">
         <Label>Category</Label>
-        <Select onValueChange={(val) => setValue('category', val as IdeaInput['category'])}>
+        <Select onValueChange={handleCategoryChange}>
           <SelectTrigger>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
@@ -111,6 +130,53 @@ export default function IdeaForm() {
           <p className="text-sm text-destructive">{errors.category.message}</p>
         )}
       </div>
+
+      {dynamicFields && (
+        <div data-testid="dynamic-fields" className="space-y-4 rounded-lg border p-4 bg-muted/30">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            {selectedCategory} Details (optional)
+          </p>
+          {dynamicFields.map((field) => (
+            <div key={field.key} className="space-y-1.5">
+              <Label htmlFor={field.key}>{field.label}</Label>
+              {field.type === 'text' && (
+                <Input
+                  id={field.key}
+                  placeholder={field.placeholder}
+                  value={metadata[field.key] ?? ''}
+                  onChange={(e) => handleMetadataChange(field.key, e.target.value)}
+                />
+              )}
+              {field.type === 'textarea' && (
+                <Textarea
+                  id={field.key}
+                  placeholder={field.placeholder}
+                  rows={3}
+                  value={metadata[field.key] ?? ''}
+                  onChange={(e) => handleMetadataChange(field.key, e.target.value)}
+                />
+              )}
+              {field.type === 'select' && (
+                <Select
+                  value={metadata[field.key] ?? ''}
+                  onValueChange={(val) => handleMetadataChange(field.key, val)}
+                >
+                  <SelectTrigger id={field.key}>
+                    <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options!.map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <Label htmlFor="attachment">Attachment (optional)</Label>

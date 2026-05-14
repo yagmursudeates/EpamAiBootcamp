@@ -4,6 +4,7 @@ import db from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatusBadge from '@/components/StatusBadge'
 import { formatDate, formatDateTime } from '@/lib/utils'
+import { FIELD_LABEL_MAP } from '@/lib/categoryFields'
 import type { DbIdea, DbAttachment, DbEvaluation, DbUser } from '@/types/db'
 
 export const dynamic = 'force-dynamic'
@@ -69,6 +70,23 @@ export default async function IdeaDetailPage({ params }: PageProps) {
             <span className="font-medium text-muted-foreground">Description</span>
             <p className="mt-1 whitespace-pre-wrap">{idea.description}</p>
           </div>
+          {idea.category_metadata && (() => {
+            const meta = JSON.parse(idea.category_metadata) as Record<string, string>
+            const entries = Object.entries(meta).filter(([, v]) => v)
+            return entries.length > 0 ? (
+              <div>
+                <span className="font-medium text-muted-foreground">Category Details</span>
+                <dl className="mt-1 space-y-1">
+                  {entries.map(([key, value]) => (
+                    <div key={key} className="flex gap-2">
+                      <dt className="text-muted-foreground shrink-0">{FIELD_LABEL_MAP[key] ?? key}:</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ) : null
+          })()}
         </CardContent>
       </Card>
 
