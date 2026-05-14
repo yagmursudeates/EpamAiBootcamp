@@ -16,12 +16,28 @@ InnovatEPAM Portal is a full-stack employee innovation management platform that 
 - [x] **Evaluation Workflow** — Admin evaluates with decision + notes; idea status updates immediately; notes visible to submitter
 
 ### Phases 2–7 Features
-- [x] **Phase 2 — In-App Notifications** — Email via nodemailer (Ethereal SMTP), triggered on evaluation; gated by `EMAIL_HOST` env var
-- [x] **Phase 3 — Email Delivery** — nodemailer transport integrated into evaluate route, fire-and-forget with error logging
-- [x] **Phase 4 — Draft Management** — Save incomplete ideas as drafts, edit and resume across sessions, submit when ready; drafts invisible to admins
-- [x] **Phase 5 — Multi-Stage Review Pipeline** — 4-stage pipeline: Submitted → Screening → Under Review → Accepted / Rejected; full audit trail in `review_stage_history`; stage-aware evaluation buttons
-- [x] **Phase 6 — Blind Review & Anonymous Submission** — Global admin toggle hides all submitter names; per-idea anonymous flag persists independently; "🔒 Submitted anonymously" badge for submitters
-- [x] **Phase 7 — Scoring System** — 1–5 scoring on Innovation, Feasibility, Impact, Clarity; live average; bar indicator cards on both admin and submitter detail pages
+
+| Phase | Feature | Status | Time |
+|---|---|---|---|
+| Phase 2 | Smart Submission Forms (dynamic category fields) | ⏳ Specced, not yet implemented | ~30 min |
+| Phase 3 | Multi-Media Support (multiple file types + previews) | ⏳ Specced, not yet implemented | ~45 min |
+| Phase 4 | Draft Management (save, resume, submit later) | ✅ Complete | ~30 min |
+| Phase 5 | Multi-Stage Review (Submitted → Screening → Under Review → Accepted/Rejected) | ✅ Complete | ~1 hr |
+| Phase 6 | Blind Review (global anonymous evaluation toggle) | ✅ Complete | ~20 min |
+| Phase 7 | Scoring System (1–5 ratings on 4 dimensions) | ✅ Complete | ~20 min |
+
+**Phase 4 details:** Save incomplete ideas as `draft`, edit and resume across sessions, promote to `submitted` when ready; drafts invisible to admins even via direct URL.
+
+**Phase 5 details:** 4-stage pipeline with stage-aware evaluation buttons; every transition logged immutably in `review_stage_history` with evaluator, timestamps, and notes; terminal-state re-open support.
+
+**Phase 6 details:** Global `blind_mode` setting in `settings` table; `BlindModeToggle` client component with optimistic UI; per-idea `is_anonymous` flag persists independently of global toggle.
+
+**Phase 7 details:** Score picker (4 × 5 buttons) in `EvaluationForm`; live arithmetic average; scores stored as JSON in `evaluations.scores`; bar indicator cards on both admin and submitter detail pages.
+
+### Bonus Features (Beyond Roadmap)
+- [x] **Email Notifications** — nodemailer + Ethereal SMTP integrated into the evaluate route; fire-and-forget with error logging; gated by `EMAIL_HOST` env var so the app works without email config
+- [x] **Delete Ideas & Drafts** — Submitters can delete their own ideas or drafts from the dashboard with a confirmation dialog; `DELETE /api/ideas/[id]` with owner-only access control
+- [x] **Per-Idea Anonymous Submission** — Submitters can mark individual ideas anonymous at creation time ("Submit anonymously" checkbox in `IdeaForm`); anonymous flag is immutable after submission and overrides global blind mode
 
 ---
 
@@ -40,9 +56,9 @@ InnovatEPAM Portal is a full-stack employee innovation management platform that 
 | Package Manager | npm |
 
 **Architecture decisions:** See [specs/001-innovatepam-portal/adr/](specs/001-innovatepam-portal/adr/)
-- ADR-001: Vitest + RTL over manual walkthroughs
-- ADR-002: In-app notifications before email (Phase 2 first)
-- ADR-003: nodemailer + Ethereal for email delivery
+- ADR-001: Vitest + RTL chosen over manual walkthroughs
+- ADR-002: In-app notifications deferred in favour of email-first delivery
+- ADR-003: nodemailer + Ethereal for email delivery (bonus feature)
 
 ---
 
