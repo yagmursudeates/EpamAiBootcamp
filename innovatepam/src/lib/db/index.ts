@@ -73,6 +73,12 @@ if (!globalForDb._db) {
     `)
   }
 
+  // Phase 6b migration: is_anonymous column on ideas
+  const ideaCols = (db.prepare('PRAGMA table_info(ideas)').all() as { name: string }[]).map((c) => c.name)
+  if (!ideaCols.includes('is_anonymous')) {
+    db.exec('ALTER TABLE ideas ADD COLUMN is_anonymous INTEGER NOT NULL DEFAULT 0')
+  }
+
   globalForDb._db = db
 }
 

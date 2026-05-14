@@ -12,8 +12,9 @@ export interface DbIdea {
   title: string
   description: string
   category: string
-  status: 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'draft'
+  status: 'submitted' | 'screening' | 'under_review' | 'accepted' | 'rejected' | 'draft'
   category_metadata: string | null
+  is_anonymous: number
   submitter_id: string
   created_at: string
   updated_at: string

@@ -70,6 +70,11 @@ export default async function IdeaDetailPage({ params }: PageProps) {
             <span className="font-medium text-muted-foreground">Submitted: </span>
             {formatDate(idea.created_at)}
           </div>
+          {idea.is_anonymous ? (
+            <div className="inline-flex items-center gap-1.5 text-xs bg-muted rounded-full px-2.5 py-0.5 text-muted-foreground">
+              🔒 Submitted anonymously
+            </div>
+          ) : null}
           <div>
             <span className="font-medium text-muted-foreground">Description</span>
             <p className="mt-1 whitespace-pre-wrap">{idea.description}</p>

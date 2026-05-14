@@ -22,6 +22,7 @@ export const IdeaSchema = z.object({
     'Employee Experience',
   ]),
   categoryMetadata: z.record(z.string(), z.unknown()).optional(),
+  isAnonymous: z.boolean().optional().default(false),
 })
 
 export const DraftSchema = z.object({
@@ -37,6 +38,7 @@ export const DraftSchema = z.object({
     ])
     .optional(),
   categoryMetadata: z.record(z.string(), z.unknown()).optional(),
+  isAnonymous: z.boolean().optional().default(false),
   status: z.enum(['draft', 'submitted']).optional().default('draft'),
 })
 
@@ -53,6 +55,7 @@ export const IdeaUpdateSchema = z.object({
     ])
     .optional(),
   categoryMetadata: z.record(z.string(), z.unknown()).optional(),
+  isAnonymous: z.boolean().optional(),
   status: z.enum(['submitted']).optional(), // only transition allowed via PATCH
 })
 

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS ideas (
   category TEXT NOT NULL CHECK(category IN ('Technical','Process Improvement','Client Solutions','Cost Reduction','Employee Experience')),
   status TEXT NOT NULL DEFAULT 'submitted' CHECK(status IN ('submitted','screening','under_review','accepted','rejected','draft')),
   category_metadata TEXT,
+  is_anonymous INTEGER NOT NULL DEFAULT 0,
   submitter_id TEXT NOT NULL REFERENCES users(id),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))

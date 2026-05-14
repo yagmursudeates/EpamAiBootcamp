@@ -73,7 +73,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { title, description, category, categoryMetadata, status } = parsed.data
+    const { title, description, category, categoryMetadata, isAnonymous, status } = parsed.data
 
     db.prepare(
       `UPDATE ideas
@@ -81,6 +81,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
            description = COALESCE(?, description),
            category = COALESCE(?, category),
            category_metadata = COALESCE(?, category_metadata),
+           is_anonymous = CASE WHEN ? IS NOT NULL THEN ? ELSE is_anonymous END,
            status = COALESCE(?, status),
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
@@ -89,6 +90,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       description ?? null,
       category ?? null,
       categoryMetadata !== undefined ? JSON.stringify(categoryMetadata) : null,
+      isAnonymous !== undefined ? 1 : null,
+      isAnonymous !== undefined ? (isAnonymous ? 1 : 0) : null,
       status ?? null,
       id
     )

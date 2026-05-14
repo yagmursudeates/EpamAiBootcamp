@@ -68,7 +68,11 @@ export default async function AdminIdeasPage({ searchParams }: PageProps) {
           {ideas.map((idea) => (
             <IdeaCard
               key={idea.id}
-              idea={{ ...idea, submitter_name: blindMode ? 'Anonymous' : idea.submitter_name }}
+              idea={{
+                ...idea,
+                submitter_name:
+                  idea.is_anonymous || blindMode ? 'Anonymous' : idea.submitter_name,
+              }}
               href={`/admin/ideas/${idea.id}`}
             />
           ))}

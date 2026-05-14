@@ -64,7 +64,7 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
         <div>
           <h1 className="text-2xl font-bold">{idea.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {blindMode ? (
+            {idea.is_anonymous || blindMode ? (
               <span className="italic">Submitted anonymously · {formatDate(idea.created_at)}</span>
             ) : (
               <>By {idea.submitter_name} · {formatDate(idea.created_at)}</>

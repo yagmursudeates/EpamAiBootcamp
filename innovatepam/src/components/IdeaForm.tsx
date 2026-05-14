@@ -52,6 +52,10 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
 
   const isEditMode = !!draft
 
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(
+    draft ? Boolean(draft.is_anonymous) : false
+  )
+
   const {
     register,
     handleSubmit,
@@ -88,6 +92,7 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
         description: (document.getElementById('description') as HTMLTextAreaElement | null)?.value ?? '',
         category: selectedCategory ?? undefined,
         categoryMetadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        isAnonymous,
       }
       let res: Response
       let ideaId: string
@@ -132,6 +137,7 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
       const payload = {
         ...data,
         categoryMetadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        isAnonymous,
       }
       let ideaId: string
       if (isEditMode && draft) {
@@ -315,10 +321,23 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
         )}
       </div>
 
+      <label className="flex items-center gap-3 cursor-pointer select-none group">
+        <input
+          type="checkbox"
+          className="w-4 h-4 accent-primary cursor-pointer"
+          checked={isAnonymous}
+          onChange={(e) => setIsAnonymous(e.target.checked)}
+        />
+        <span className="text-sm text-foreground">
+          Submit anonymously
+          <span className="block text-xs text-muted-foreground font-normal">
+            Your name will be hidden from reviewers
+          </span>
+        </span>
+      </label>
+
       <div className="flex gap-3">
         <Button
-          type="button"
-          variant="outline"
           disabled={submitting}
           className="flex-1"
           onClick={saveDraft}

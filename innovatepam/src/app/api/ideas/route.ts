@@ -50,19 +50,20 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { title, description, category, categoryMetadata } = parsed.data
+    const { title, description, category, categoryMetadata, isAnonymous } = parsed.data
     const status = isDraft ? 'draft' : 'submitted'
     const id = uuidv4()
 
     db.prepare(
-      `INSERT INTO ideas (id, title, description, category, category_metadata, status, submitter_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO ideas (id, title, description, category, category_metadata, is_anonymous, status, submitter_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       title,
       description ?? '',
       category ?? null,
       categoryMetadata ? JSON.stringify(categoryMetadata) : null,
+      isAnonymous ? 1 : 0,
       status,
       session.user.id
     )
