@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { IdeaSchema, type IdeaInput } from '@/lib/validations'
 import { CATEGORY_FIELDS } from '@/lib/categoryFields'
+import type { DbIdea } from '@/types/db'
 
 const CATEGORIES = [
   'Technical',
@@ -27,7 +28,11 @@ const CATEGORIES = [
   'Employee Experience',
 ] as const
 
-export default function IdeaForm() {
+interface IdeaFormProps {
+  draft?: DbIdea
+}
+
+export default function IdeaForm({ draft }: IdeaFormProps = {}) {
   const router = useRouter()
   const [files, setFiles] = useState<File[]>([])
   const filesRef = useRef<File[]>([])
@@ -40,8 +45,12 @@ export default function IdeaForm() {
     })
   }
   const [submitting, setSubmitting] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [metadata, setMetadata] = useState<Record<string, string>>({})
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(draft?.category ?? null)
+  const [metadata, setMetadata] = useState<Record<string, string>>(
+    draft?.category_metadata ? JSON.parse(draft.category_metadata) : {}
+  )
+
+  const isEditMode = !!draft
 
   const {
     register,
@@ -49,6 +58,14 @@ export default function IdeaForm() {
     setValue,
     formState: { errors },
   } = useForm<IdeaInput>({ resolver: zodResolver(IdeaSchema) })
+
+  useEffect(() => {
+    if (draft) {
+      setValue('title', draft.title)
+      setValue('description', draft.description)
+      if (draft.category) setValue('category', draft.category as IdeaInput['category'])
+    }
+  }, [draft, setValue])
 
   const handleCategoryChange = (val: string) => {
     setValue('category', val as IdeaInput['category'])
@@ -60,6 +77,54 @@ export default function IdeaForm() {
     setMetadata((prev) => ({ ...prev, [key]: value }))
   }
 
+  const saveDraft = async () => {
+    const titleEl = document.getElementById('title') as HTMLInputElement | null
+    const title = titleEl?.value?.trim()
+    if (!title) { toast.error('Title is required to save a draft'); return }
+    setSubmitting(true)
+    try {
+      const payload = {
+        title,
+        description: (document.getElementById('description') as HTMLTextAreaElement | null)?.value ?? '',
+        category: selectedCategory ?? undefined,
+        categoryMetadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        status: 'draft' as const,
+      }
+      let res: Response
+      let ideaId: string
+      if (isEditMode && draft) {
+        res = await fetch(`/api/ideas/${draft.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        ideaId = draft.id
+      } else {
+        res = await fetch('/api/ideas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const data = await res.json()
+        ideaId = data.idea?.id
+      }
+      if (!res.ok) {
+        const err = isEditMode ? await res.json() : {}
+        toast.error(err.error ?? 'Failed to save draft')
+        return
+      }
+      for (const file of filesRef.current) {
+        const form = new FormData()
+        form.append('file', file)
+        await fetch(`/api/ideas/${ideaId}/attachments`, { method: 'POST', body: form })
+      }
+      toast.success('Draft saved!')
+      router.push('/dashboard')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const onSubmit = async (data: IdeaInput) => {
     setSubmitting(true)
     try {
@@ -67,22 +132,39 @@ export default function IdeaForm() {
         ...data,
         categoryMetadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       }
-      const res = await fetch('/api/ideas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        toast.error(err.error ?? 'Failed to submit idea')
-        return
+      let ideaId: string
+      if (isEditMode && draft) {
+        // promote draft to submitted
+        const patchRes = await fetch(`/api/ideas/${draft.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, status: 'submitted' }),
+        })
+        if (!patchRes.ok) {
+          const err = await patchRes.json()
+          toast.error(err.error ?? 'Failed to submit idea')
+          return
+        }
+        ideaId = draft.id
+      } else {
+        const res = await fetch('/api/ideas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          toast.error(err.error ?? 'Failed to submit idea')
+          return
+        }
+        const { idea } = await res.json()
+        ideaId = idea.id
       }
-      const { idea } = await res.json()
 
       for (const file of filesRef.current) {
         const form = new FormData()
         form.append('file', file)
-        const uploadRes = await fetch(`/api/ideas/${idea.id}/attachments`, {
+        const uploadRes = await fetch(`/api/ideas/${ideaId}/attachments`, {
           method: 'POST',
           body: form,
         })
@@ -188,7 +270,7 @@ export default function IdeaForm() {
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label htmlFor="attachment">Attachments (optional, up to 5 files)</Label>
         <Input
           id="attachment"
@@ -204,34 +286,48 @@ export default function IdeaForm() {
                 .filter((f) => (seen.has(f.name) ? false : (seen.add(f.name), true)))
                 .slice(0, 5)
             })
-            // reset input value so the same file can be re-added after removal
             e.target.value = ''
           }}
         />
-        {files.length > 0 && (
-          <ul className="text-xs text-muted-foreground space-y-0.5">
-            {files.map((f, i) => (
-              <li key={f.name} className="flex items-center gap-2">
-                <span>• {f.name}</span>
-                <button
-                  type="button"
-                  className="text-destructive hover:underline"
-                  onClick={() => updateFiles((prev) => prev.filter((_, idx) => idx !== i))}
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
+        {files.length > 0 ? (
+          <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1.5">
+            <p className="text-xs font-medium text-foreground">{files.length} file{files.length > 1 ? 's' : ''} queued for upload:</p>
+            <ul className="space-y-1">
+              {files.map((f, i) => (
+                <li key={f.name} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="truncate text-foreground">📎 {f.name}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 text-xs text-destructive hover:underline"
+                    onClick={() => updateFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, WEBP, MP4, MOV · Max 20 MB each
+          </p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, WEBP, MP4, MOV · Max 20 MB each · Up to 5 files (click multiple times to add more)
-        </p>
       </div>
 
-      <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? 'Submitting…' : 'Submit Idea'}
-      </Button>
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={submitting}
+          className="flex-1"
+          onClick={saveDraft}
+        >
+          {submitting ? 'Saving…' : 'Save Draft'}
+        </Button>
+        <Button type="submit" disabled={submitting} className="flex-1">
+          {submitting ? 'Submitting…' : isEditMode ? 'Submit Idea' : 'Submit Idea'}
+        </Button>
+      </div>
     </form>
   )
 }

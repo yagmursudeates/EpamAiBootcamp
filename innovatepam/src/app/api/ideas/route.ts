@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { auth } from '@/lib/auth'
 import db from '@/lib/db'
-import { IdeaSchema } from '@/lib/validations'
+import { IdeaSchema, DraftSchema } from '@/lib/validations'
 import type { DbIdea } from '@/types/db'
 
 export async function GET() {
@@ -41,23 +41,29 @@ export async function POST(req: NextRequest) {
     if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const parsed = IdeaSchema.safeParse(body)
+
+    // Use DraftSchema when saving as draft (allows missing fields), IdeaSchema otherwise
+    const isDraft = body.status === 'draft'
+    const schema = isDraft ? DraftSchema : IdeaSchema
+    const parsed = schema.safeParse(body)
     if (!parsed.success) {
       return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
     const { title, description, category, categoryMetadata } = parsed.data
+    const status = isDraft ? 'draft' : 'submitted'
     const id = uuidv4()
 
     db.prepare(
-      `INSERT INTO ideas (id, title, description, category, category_metadata, submitter_id)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO ideas (id, title, description, category, category_metadata, status, submitter_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       title,
-      description,
-      category,
+      description ?? '',
+      category ?? null,
       categoryMetadata ? JSON.stringify(categoryMetadata) : null,
+      status,
       session.user.id
     )
 
