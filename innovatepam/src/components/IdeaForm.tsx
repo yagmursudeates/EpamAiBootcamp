@@ -338,6 +338,8 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
 
       <div className="flex gap-3">
         <Button
+          type="button"
+          variant="outline"
           disabled={submitting}
           className="flex-1"
           onClick={saveDraft}

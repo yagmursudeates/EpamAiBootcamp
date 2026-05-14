@@ -75,10 +75,12 @@ export default async function IdeaDetailPage({ params }: PageProps) {
               🔒 Submitted anonymously
             </div>
           ) : null}
-          <div>
-            <span className="font-medium text-muted-foreground">Description</span>
-            <p className="mt-1 whitespace-pre-wrap">{idea.description}</p>
-          </div>
+          {idea.description ? (
+            <div>
+              <span className="font-medium text-muted-foreground">Description</span>
+              <p className="mt-1 whitespace-pre-wrap">{idea.description}</p>
+            </div>
+          ) : null}
           {idea.category_metadata && (() => {
             const meta = JSON.parse(idea.category_metadata) as Record<string, string>
             const entries = Object.entries(meta).filter(([, v]) => v)
