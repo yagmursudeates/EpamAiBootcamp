@@ -92,7 +92,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     return Response.json({ message: 'Evaluation saved' })
-  } catch {
+  } catch (err) {
+    console.error('[evaluate] error:', err)
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

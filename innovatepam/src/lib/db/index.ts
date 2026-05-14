@@ -12,11 +12,13 @@ if (!globalForDb._db) {
   const schema = fs.readFileSync(path.join(process.cwd(), 'src/lib/db/schema.sql'), 'utf-8')
   db.exec(schema)
 
-  // Phase 5 migration: add screening status + review_stage_history
-  const hasHistoryTable = db
-    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='review_stage_history'")
-    .get()
-  if (!hasHistoryTable) {
+  // Phase 5 migration: add screening to CHECK constraints + review_stage_history table
+  const ideasSchema = db
+    .prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='ideas'")
+    .get() as { sql: string } | undefined
+  const needsScreening = ideasSchema && !ideasSchema.sql.includes("'screening'")
+
+  if (needsScreening) {
     db.pragma('foreign_keys = OFF')
     db.exec(`
       CREATE TABLE ideas_new (
