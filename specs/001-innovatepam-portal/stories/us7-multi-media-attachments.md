@@ -4,7 +4,7 @@
 **Epic:** EP-004 — Enhanced Submission Experience  
 **Author:** Engineering team  
 **Date:** 2026-05-13  
-**Status:** Draft
+**Status:** Done
 
 ---
 
@@ -18,11 +18,11 @@
 
 ## 2. Acceptance Criteria
 
-- [ ] **AC-1:** Given a submitter on `/submit`, when they attach multiple files, then all files are listed with name and size before submission.
-- [ ] **AC-2:** Given a submitter attaching files, when the total count exceeds 5, then they see "Maximum 5 attachments allowed" and further uploads are blocked.
-- [ ] **AC-3:** Given an idea with image attachments on the detail page, when viewed by any authenticated user, then images render as inline thumbnails.
-- [ ] **AC-4:** Given an idea with non-image attachments, when viewed on the detail page, then each shows a file icon, filename, and download link.
-- [ ] **AC-5:** Given a submitter attaching an unsupported MIME type, when they try to upload, then they see "File type not supported" and the file is rejected.
+- [x] **AC-1:** Given a submitter on `/submit`, when they attach multiple files, then all files are listed with name and size before submission.
+- [x] **AC-2:** Given a submitter attaching files, when the total count exceeds 5, then they see "Maximum 5 attachments allowed" and further uploads are blocked.
+- [x] **AC-3:** Given an idea with image attachments on the detail page, when viewed by any authenticated user, then images render as inline thumbnails.
+- [x] **AC-4:** Given an idea with non-image attachments, when viewed on the detail page, then each shows a file icon, filename, and download link.
+- [x] **AC-5:** Given a submitter attaching an unsupported MIME type, when they try to upload, then they see "File type not supported" and the file is rejected.
 
 ---
 

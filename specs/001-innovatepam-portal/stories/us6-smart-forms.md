@@ -4,7 +4,7 @@
 **Epic:** EP-004 — Enhanced Submission Experience  
 **Author:** Engineering team  
 **Date:** 2026-05-13  
-**Status:** Draft
+**Status:** Done
 
 ---
 
@@ -18,11 +18,11 @@
 
 ## 2. Acceptance Criteria
 
-- [ ] **AC-1:** Given a submitter on `/submit`, when they select "Technical", then additional fields for "Technology Stack" and "Implementation Complexity" appear without a page reload.
-- [ ] **AC-2:** Given a submitter on `/submit`, when they select "Process Improvement", then additional fields for "Affected Department" and "Estimated Time Saving" appear.
-- [ ] **AC-3:** Given a submitter on `/submit`, when they select "Client Solutions", then additional fields for "Target Client Segment" and "Revenue Impact" appear.
-- [ ] **AC-4:** Given a submitter on `/submit`, when they change the selected category, then previously entered category-specific values are cleared.
-- [ ] **AC-5:** Given a submitter submitting with category-specific fields visible, when they leave a required category field blank, then inline validation prevents submission.
+- [x] **AC-1:** Given a submitter on `/submit`, when they select "Technical", then additional fields for "Technology Stack" and "Implementation Complexity" appear without a page reload.
+- [x] **AC-2:** Given a submitter on `/submit`, when they select "Process Improvement", then additional fields for "Affected Department" and "Estimated Time Saving" appear.
+- [x] **AC-3:** Given a submitter on `/submit`, when they select "Client Solutions", then additional fields for "Target Client Segment" and "Revenue Impact" appear.
+- [x] **AC-4:** Given a submitter on `/submit`, when they change the selected category, then previously entered category-specific values are cleared.
+- [x] **AC-5:** Given a submitter submitting with category-specific fields visible, when they leave a required category field blank, then inline validation prevents submission.
 
 ---
 

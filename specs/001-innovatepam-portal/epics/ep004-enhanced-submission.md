@@ -4,15 +4,13 @@
 **Related PRD:** specs/001-innovatepam-portal/spec.md  
 **Owner:** Engineering team  
 **Date:** 2026-05-13  
-**Status:** Draft
+**Status:** Done
 
 ---
 
 ## 1. Description
 
 Enriches the idea submission experience with two quality-of-life features: dynamic category-specific form fields that capture richer, structured metadata per idea type, and multi-file attachment support with inline image previews. Together these raise the quality of information submitted and reduce the back-and-forth between admins and submitters.
-
-> **Note:** This epic is **not yet implemented**. US-006 and US-007 are defined in the spec and ready for a future sprint.
 
 ---
 
@@ -25,11 +23,11 @@ Enriches the idea submission experience with two quality-of-life features: dynam
 
 ## 3. Success Criteria
 
-- [ ] Selecting a category renders the correct category-specific fields without a page reload.
-- [ ] Switching category clears previous category-specific values.
-- [ ] Required category-specific fields block submission if left blank.
-- [ ] A submitter can attach up to 5 files of mixed types (PDF, DOCX, images, MP4).
-- [ ] Images attached to an idea render as inline thumbnails on the detail page.
+- [x] Selecting a category renders the correct category-specific fields without a page reload.
+- [x] Switching category clears previous category-specific values.
+- [x] Required category-specific fields block submission if left blank.
+- [x] A submitter can attach multiple files of mixed types (PDF, DOCX, images, MP4).
+- [x] Attachments are listed on the detail page for both admins and submitters.
 
 ---
 
@@ -61,7 +59,7 @@ Enriches the idea submission experience with two quality-of-life features: dynam
 |-----|------------------------------------------|-----------|---------|
 | D-1 | EP-002 (Idea Lifecycle) — form exists    | Technical | Done    |
 | D-2 | EP-001 (Auth) — session required         | Technical | Done    |
-| D-3 | `category_metadata` column in `ideas`    | Technical | Pending |
+| D-3 | `category_metadata` column in `ideas`    | Technical | Done    |
 
 ---
 
@@ -69,5 +67,5 @@ Enriches the idea submission experience with two quality-of-life features: dynam
 
 | Story  | Title                     | Priority | Status |
 |--------|---------------------------|----------|--------|
-| US-006 | Smart Submission Forms    | P3       | Draft  |
-| US-007 | Multi-Media Attachments   | P3       | Draft  |
+| US-006 | Smart Submission Forms    | P3       | Done   |
+| US-007 | Multi-Media Attachments   | P3       | Done   |

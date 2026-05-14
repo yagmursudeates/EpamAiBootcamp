@@ -19,12 +19,16 @@ InnovatEPAM Portal is a full-stack employee innovation management platform that 
 
 | Phase | Feature | Status | Time |
 |---|---|---|---|
-| Phase 2 | Smart Submission Forms (dynamic category fields) | ⏳ Specced, not yet implemented | ~30 min |
-| Phase 3 | Multi-Media Support (multiple file types + previews) | ⏳ Specced, not yet implemented | ~45 min |
+| Phase 2 | Smart Submission Forms (dynamic category fields) | ✅ Complete | ~30 min |
+| Phase 3 | Multi-Media Support (multiple file types + previews) | ✅ Complete | ~45 min |
 | Phase 4 | Draft Management (save, resume, submit later) | ✅ Complete | ~30 min |
 | Phase 5 | Multi-Stage Review (Submitted → Screening → Under Review → Accepted/Rejected) | ✅ Complete | ~1 hr |
 | Phase 6 | Blind Review (global anonymous evaluation toggle) | ✅ Complete | ~20 min |
 | Phase 7 | Scoring System (1–5 ratings on 4 dimensions) | ✅ Complete | ~20 min |
+
+**Phase 2 details:** `CATEGORY_FIELDS` map drives dynamic extra fields per category (Technical, Process Improvement, Client Solutions, Cost Reduction, Employee Experience); fields render without page reload; `categoryMetadata` stored as JSON and displayed on both admin and submitter detail pages.
+
+**Phase 3 details:** File input accepts multiple files (`multiple` attribute); attachments stored with UUID filenames outside web root; served via authenticated `GET /api/attachments/[id]`; attachment list rendered on detail pages for both admins and submitters.
 
 **Phase 4 details:** Save incomplete ideas as `draft`, edit and resume across sessions, promote to `submitted` when ready; drafts invisible to admins even via direct URL.
 
