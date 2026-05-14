@@ -79,6 +79,12 @@ if (!globalForDb._db) {
     db.exec('ALTER TABLE ideas ADD COLUMN is_anonymous INTEGER NOT NULL DEFAULT 0')
   }
 
+  // Phase 7 migration: scores column on evaluations
+  const evalCols = (db.prepare('PRAGMA table_info(evaluations)').all() as { name: string }[]).map((c) => c.name)
+  if (!evalCols.includes('scores')) {
+    db.exec('ALTER TABLE evaluations ADD COLUMN scores TEXT')
+  }
+
   globalForDb._db = db
 }
 

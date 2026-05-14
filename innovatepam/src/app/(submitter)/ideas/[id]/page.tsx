@@ -137,6 +137,24 @@ export default async function IdeaDetailPage({ params }: PageProps) {
                 <p className="mt-1 whitespace-pre-wrap">{evaluation.notes}</p>
               </div>
             )}
+            {evaluation.scores && (() => {
+              const s = JSON.parse(evaluation.scores) as { innovation: number; feasibility: number; impact: number; clarity: number }
+              const avg = (Object.values(s).reduce((a: number, b: number) => a + b, 0) / 4).toFixed(1)
+              return (
+                <div>
+                  <span className="font-medium text-muted-foreground">Scores: </span>
+                  <span className="text-sm font-semibold text-primary ml-1">{avg} / 5 avg</span>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {([['Innovation', s.innovation], ['Feasibility', s.feasibility], ['Impact', s.impact], ['Clarity', s.clarity]] as [string, number][]).map(([label, value]) => (
+                      <div key={label} className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-medium">{value}/5</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
             <div className="text-muted-foreground">
               Evaluated by {evaluation.evaluator_name} on{' '}
               {formatDateTime(evaluation.updated_at)}

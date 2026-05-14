@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
   evaluator_id TEXT NOT NULL REFERENCES users(id),
   decision TEXT NOT NULL CHECK(decision IN ('screening','under_review','accepted','rejected')),
   notes TEXT,
+  scores TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

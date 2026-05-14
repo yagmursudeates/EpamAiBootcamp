@@ -132,6 +132,47 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
         </Card>
       )}
 
+      {evaluation?.scores && (() => {
+        const s = JSON.parse(evaluation.scores) as { innovation: number; feasibility: number; impact: number; clarity: number }
+        const avg = (Object.values(s).reduce((a: number, b: number) => a + b, 0) / 4).toFixed(1)
+        const dims = [
+          { label: 'Innovation',  value: s.innovation  },
+          { label: 'Feasibility', value: s.feasibility },
+          { label: 'Impact',      value: s.impact      },
+          { label: 'Clarity',     value: s.clarity     },
+        ]
+        return (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Scores</CardTitle>
+                <span className="text-sm font-semibold text-primary">{avg} / 5 avg</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                {dims.map(({ label, value }) => (
+                  <div key={label}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="font-medium">{value} / 5</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((v) => (
+                        <div
+                          key={v}
+                          className={`flex-1 h-2 rounded-full ${v <= value ? 'bg-primary' : 'bg-muted'}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
@@ -149,6 +190,7 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
             ideaId={id}
             currentStatus={idea.status}
             currentNotes={evaluation?.notes ?? undefined}
+            currentScores={evaluation?.scores ? JSON.parse(evaluation.scores) : null}
           />
         </CardContent>
       </Card>

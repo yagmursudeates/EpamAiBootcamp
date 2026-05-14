@@ -30,12 +30,20 @@ export interface DbAttachment {
   created_at: string
 }
 
+export interface IdeaScores {
+  innovation: number
+  feasibility: number
+  impact: number
+  clarity: number
+}
+
 export interface DbEvaluation {
   id: string
   idea_id: string
   evaluator_id: string
   decision: 'screening' | 'under_review' | 'accepted' | 'rejected'
   notes: string | null
+  scores: string | null  // JSON-encoded IdeaScores
   created_at: string
   updated_at: string
 }

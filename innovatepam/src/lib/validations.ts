@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import type { IdeaScores } from '@/types/db'
+export type { IdeaScores }
 
 export const RegisterSchema = z.object({
   name: z.string().min(1).max(100),
@@ -59,9 +61,19 @@ export const IdeaUpdateSchema = z.object({
   status: z.enum(['submitted']).optional(), // only transition allowed via PATCH
 })
 
+const ScoreField = z.number().int().min(1).max(5)
+
+export const ScoresSchema = z.object({
+  innovation: ScoreField,
+  feasibility: ScoreField,
+  impact: ScoreField,
+  clarity: ScoreField,
+})
+
 export const EvaluationSchema = z.object({
   decision: z.enum(['screening', 'under_review', 'accepted', 'rejected']),
   notes: z.string().optional(),
+  scores: ScoresSchema.optional(),
 })
 
 export type RegisterInput = z.infer<typeof RegisterSchema>

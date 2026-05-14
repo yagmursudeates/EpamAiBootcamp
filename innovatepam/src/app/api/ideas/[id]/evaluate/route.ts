@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { decision, notes } = parsed.data
+    const { decision, notes, scores } = parsed.data
 
     // Upsert evaluation + sync status + log history + create notification — all in one transaction
     const transact = db.transaction(() => {
@@ -43,17 +43,19 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         .prepare('SELECT id FROM evaluations WHERE idea_id = ?')
         .get(ideaId) as DbEvaluation | undefined
 
+      const scoresJson = scores ? JSON.stringify(scores) : null
+
       if (existing) {
         db.prepare(
           `UPDATE evaluations
-           SET decision = ?, notes = ?, evaluator_id = ?, updated_at = datetime('now')
+           SET decision = ?, notes = ?, scores = ?, evaluator_id = ?, updated_at = datetime('now')
            WHERE idea_id = ?`
-        ).run(decision, notes ?? null, session.user.id, ideaId)
+        ).run(decision, notes ?? null, scoresJson, session.user.id, ideaId)
       } else {
         db.prepare(
-          `INSERT INTO evaluations (id, idea_id, evaluator_id, decision, notes)
-           VALUES (?, ?, ?, ?, ?)`
-        ).run(uuidv4(), ideaId, session.user.id, decision, notes ?? null)
+          `INSERT INTO evaluations (id, idea_id, evaluator_id, decision, notes, scores)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        ).run(uuidv4(), ideaId, session.user.id, decision, notes ?? null, scoresJson)
       }
 
       db.prepare(
