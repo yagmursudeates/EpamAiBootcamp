@@ -4,6 +4,7 @@ import db from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatusBadge from '@/components/StatusBadge'
 import EvaluationForm from '@/components/EvaluationForm'
+import DeleteIdeaButton from '@/components/DeleteIdeaButton'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { FIELD_LABEL_MAP } from '@/lib/categoryFields'
 import type { DbIdea, DbAttachment, DbEvaluation } from '@/types/db'
@@ -56,7 +57,10 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
             By {idea.submitter_name} · {formatDate(idea.created_at)}
           </p>
         </div>
-        <StatusBadge status={idea.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={idea.status} />
+          <DeleteIdeaButton ideaId={idea.id} redirectTo="/admin/ideas" />
+        </div>
       </div>
 
       <Card>

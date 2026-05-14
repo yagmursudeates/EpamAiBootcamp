@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import db from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatusBadge from '@/components/StatusBadge'
+import DeleteIdeaButton from '@/components/DeleteIdeaButton'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { FIELD_LABEL_MAP } from '@/lib/categoryFields'
 import type { DbIdea, DbAttachment, DbEvaluation, DbUser } from '@/types/db'
@@ -50,7 +51,10 @@ export default async function IdeaDetailPage({ params }: PageProps) {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-2xl font-bold">{idea.title}</h1>
-        <StatusBadge status={idea.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={idea.status} />
+          <DeleteIdeaButton ideaId={idea.id} />
+        </div>
       </div>
 
       <Card>

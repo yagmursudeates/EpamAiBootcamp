@@ -99,3 +99,43 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function DELETE(_req: Request, { params }: RouteParams) {
+  try {
+    const session = await auth()
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { id } = await params
+
+    const idea = db.prepare('SELECT * FROM ideas WHERE id = ?').get(id) as DbIdea | undefined
+    if (!idea) return Response.json({ error: 'Idea not found' }, { status: 404 })
+
+    // Submitters can only delete their own ideas; admins can delete any
+    if (session.user.role !== 'admin' && idea.submitter_id !== session.user.id) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Cascade: delete attachments files from disk, then DB rows
+    const attachments = db
+      .prepare('SELECT filepath FROM attachments WHERE idea_id = ?')
+      .all(id) as { filepath: string }[]
+
+    const deleteAll = db.transaction(() => {
+      db.prepare('DELETE FROM notifications WHERE idea_id = ?').run(id)
+      db.prepare('DELETE FROM evaluations WHERE idea_id = ?').run(id)
+      db.prepare('DELETE FROM attachments WHERE idea_id = ?').run(id)
+      db.prepare('DELETE FROM ideas WHERE id = ?').run(id)
+    })
+    deleteAll()
+
+    // Remove files from disk after successful DB deletion
+    const fs = await import('fs')
+    for (const { filepath } of attachments) {
+      try { fs.unlinkSync(filepath) } catch { /* file may already be missing */ }
+    }
+
+    return new Response(null, { status: 204 })
+  } catch {
+    return Response.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import db from '@/lib/db'
 import IdeaCard from '@/components/IdeaCard'
-import { Button } from '@/components/ui/button'
+import DeleteIdeaButton from '@/components/DeleteIdeaButton'
 import type { DbIdea } from '@/types/db'
 
 export const dynamic = 'force-dynamic'
@@ -43,12 +43,15 @@ export default async function DashboardPage() {
             {drafts.map((idea) => (
               <div key={idea.id} className="relative">
                 <IdeaCard idea={idea} href={`/ideas/${idea.id}/edit`} />
-                <a
-                  href={`/ideas/${idea.id}/edit`}
-                  className="absolute bottom-4 right-4 inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent h-7 px-2"
-                >
-                  Edit
-                </a>
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <a
+                    href={`/ideas/${idea.id}/edit`}
+                    className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent h-7 px-2"
+                  >
+                    Edit
+                  </a>
+                  <DeleteIdeaButton ideaId={idea.id} size="sm" />
+                </div>
               </div>
             ))}
           </div>
@@ -68,7 +71,12 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {submitted.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} href={`/ideas/${idea.id}`} />
+              <div key={idea.id} className="relative">
+                <IdeaCard idea={idea} href={`/ideas/${idea.id}`} />
+                <div className="absolute bottom-4 right-4">
+                  <DeleteIdeaButton ideaId={idea.id} size="sm" />
+                </div>
+              </div>
             ))}
           </div>
         )}
