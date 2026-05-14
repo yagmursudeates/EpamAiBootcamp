@@ -1,67 +1,81 @@
 # Implementation Plan: InnovatEPAM Portal
 
-**Branch**: `01-core-portal` | **Date**: 2026-05-13 | **Spec**: [spec.md](spec.md)
+**Branch**: `001-innovatepam-portal` | **Date**: 2026-05-13 | **Status**: ✅ Complete | **Spec**: [spec.md](spec.md)
+
+**Input**: Feature specification from `specs/001-innovatepam-portal/spec.md`
 
 ## Summary
 
-Build a full-stack employee innovation management portal using Next.js 14 App Router. Employees submit ideas with file attachments; admins evaluate and update statuses. Authentication is credential-based with role-aware routing. Data is persisted in SQLite via `better-sqlite3`. UI is built entirely with shadcn/ui components styled through Tailwind CSS v4 `@theme` tokens. No automated tests — manual acceptance criteria walkthrough is the quality gate.
-
----
+Full-stack employee innovation management portal built with Next.js 16 App Router. Employees submit ideas with optional file attachments and can mark them as anonymous. Admins evaluate ideas through a 4-stage pipeline (Submitted → Screening → Under Review → Accepted/Rejected) with per-stage notes, a 4-dimension 1–5 scoring system, and a global Blind Review toggle. Authentication is credential-based with role-aware routing. Data is persisted in SQLite via `better-sqlite3`. UI is built with shadcn/ui + Tailwind CSS v4 `@theme` design tokens. Tests use Vitest v4 + React Testing Library (109 tests across 13 files).
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5 / Node.js 20+
 
-**Framework**: Next.js 14+ (App Router, server components by default)
+**Framework**: Next.js 14+ (App Router; server components by default; `"use client"` only where state or browser APIs are required)
 
 **Primary Dependencies**:
 - `next`, `react`, `react-dom` — framework
-- `tailwindcss` v4 with `@theme` CSS custom properties — styling
-- `shadcn/ui` (via `npx shadcn@latest init`) — UI component library
-- `better-sqlite3` — SQLite data access
-- `next-auth` v5 (Auth.js) — Credentials provider, JWT sessions
+- `tailwindcss` v4 with `@theme` CSS custom properties in `globals.css` — styling & design tokens
+- `shadcn/ui` (New York style, CSS variables on) — UI component library
+- `better-sqlite3` — synchronous SQLite data access
+- `next-auth` v5 (Auth.js) — Credentials provider, JWT sessions (24 h)
 - `bcryptjs` — password hashing
 - `zod` — schema validation at all API boundaries
-- `date-fns` — date formatting throughout the UI
-- `uuid` — ID generation
+- `date-fns` — date formatting (`formatDate`, `formatDateTime` wrappers)
+- `uuid` — UUID v4 primary key generation
 - `sonner` — toast notifications
 
-**Storage**: SQLite (single file: `innovatepam.db` in project root, gitignored)
+**Storage**: SQLite single file (`innovatepam.db` at project root, gitignored)
 
-**Testing**: None — manual walkthrough against acceptance scenarios is sufficient
+**Testing**: Vitest v4 + React Testing Library + jsdom. 109 tests across 13 test files in `src/__tests__/`. In-memory SQLite (`:memory:`) in all DB tests.
 
-**Target Platform**: Local development server (macOS/Linux), browser
+**Target Platform**: Local development server (macOS/Linux), modern browser
 
-**Project Type**: Full-stack web application (monorepo — Next.js handles both frontend and API)
+**Project Type**: Full-stack web application (Next.js monorepo — App Router handles both UI and API)
 
-**Performance Goals**: No specific SLA; must feel responsive for ~10 concurrent dev users
+**Performance Goals**: Subjectively responsive for ≤ 10 concurrent local users; no SLA
 
 **Constraints**:
-- No CSS-in-JS; Tailwind `@theme` tokens only
-- No new dependencies outside the permitted list without justification
-- File uploads stored in `uploads/` at project root (outside `public/`); max 10 MB per file
-- JWT sessions expire in 24 hours
+- No CSS-in-JS; Tailwind `@theme` tokens only; no `tailwind.config.ts`
+- No dependencies outside the permitted list without justification comment
+- File uploads stored in `uploads/` at project root (outside `public/`); max 10 MB; gitignored
+- JWT sessions expire in 24 hours (CL-012)
+- `bcryptjs` salt rounds: 12
 
-**Scale/Scope**: Single-instance local app; ~5 screens, ~10 API routes
-
----
+**Scale/Scope**: Single-instance local app; ~12 pages, ~14 API routes, 6 DB tables
 
 ## Constitution Check
 
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
 | Principle | Status | Notes |
 |---|---|---|
-| I. Clean Code | ✅ | Functions ≤ 30 lines enforced by code review; ESLint + Prettier configured at project init |
-| II. Simple & Responsive UI | ✅ | Mobile-first Tailwind, shadcn/ui components, WCAG AA contrast via `@theme` tokens |
-| III. Minimal Dependencies | ✅ | All deps are on the permitted list; no extras introduced in this plan |
-| IV. Next.js + React + Tailwind | ✅ | App Router, server components by default, `"use client"` only where needed |
-| V. SDD Workflow | ✅ | This plan follows spec.md; tasks.md generated next |
-| Security | ✅ | bcrypt passwords, Zod validation, role guards in middleware, files outside web root |
+| I. Clean Code | ✅ | Functions ≤ 30 lines; ESLint + Prettier configured at scaffold; intention-revealing names enforced by code review |
+| II. Simple & Responsive UI | ✅ | Mobile-first Tailwind utility classes; shadcn/ui for all interactive elements; loading/empty/error states defined in spec |
+| III. Minimal Dependencies | ✅ | All 10 runtime deps are on the permitted list; `sonner` and `react-hook-form` approved as shadcn peers |
+| IV. Next.js + React + Tailwind | ✅ | App Router; server components by default; `@theme` in `globals.css`; SQLite via `better-sqlite3`; Zod at every API boundary |
+| V. SDD Workflow | ✅ | Spec accepted with 13 CLs resolved; this plan precedes all code |
+| Security | ✅ | bcrypt passwords; Zod validation before DB; role guards in `middleware.ts` + repeated in route handlers; files outside web root |
 
----
+**Post-Design Re-check**: ✅ All principles hold after Phase 1 design. No violations introduced.
 
 ## Project Structure
 
-### Source Code
+### Documentation (this feature)
+
+```text
+specs/001-innovatepam-portal/
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+├── contracts/
+│   └── api.md           # REST API contract
+└── tasks.md             # Phase 2 output (generated by /speckit.tasks)
+```
+
+### Source Code (repository root)
 
 ```text
 innovatepam/                          ← Next.js app root (npm project)
@@ -69,264 +83,304 @@ innovatepam/                          ← Next.js app root (npm project)
 │   ├── app/
 │   │   ├── layout.tsx                ← root layout (fonts, Toaster)
 │   │   ├── page.tsx                  ← redirect → /login
-│   │   ├── globals.css               ← Tailwind @import + @theme tokens
+│   │   ├── globals.css               ← @import "tailwindcss" + @theme tokens
 │   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx
-│   │   │   └── register/
-│   │   │       └── page.tsx
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
 │   │   ├── (submitter)/
 │   │   │   ├── layout.tsx            ← guard: any authenticated user
-│   │   │   ├── dashboard/
-│   │   │   │   └── page.tsx          ← submitter's idea list + drafts (Phase 4)
-│   │   │   └── submit/
-│   │   │       └── page.tsx          ← idea submission form
+│   │   │   ├── dashboard/page.tsx    ← submitter idea list + drafts section (P3)
+│   │   │   └── submit/page.tsx       ← idea submission form
 │   │   ├── (admin)/
-│   │   │   ├── layout.tsx            ← guard: admin only
+│   │   │   ├── layout.tsx            ← guard: admin role only
 │   │   │   └── admin/
-│   │   │       ├── page.tsx          ← admin dashboard (counts by status)
+│   │   │       ├── page.tsx          ← admin overview (counts per status)
 │   │   │       └── ideas/
 │   │   │           ├── page.tsx      ← all ideas list with status filter
 │   │   │           └── [id]/
-│   │   │               └── evaluate/
-│   │   │                   └── page.tsx
+│   │   │               └── evaluate/page.tsx
 │   │   ├── ideas/
-│   │   │   └── [id]/
-│   │   │       └── page.tsx          ← shared read-only detail view
+│   │   │   └── [id]/page.tsx         ← shared read-only detail view
 │   │   └── api/
-│   │       ├── auth/
-│   │       │   └── [...nextauth]/
-│   │       │       └── route.ts      ← NextAuth handler
+│   │       ├── auth/[...nextauth]/route.ts
 │   │       ├── ideas/
 │   │       │   ├── route.ts          ← GET (list) + POST (create)
 │   │       │   └── [id]/
 │   │       │       ├── route.ts      ← GET (detail) + PATCH (update draft)
-│   │       │       ├── evaluate/
-│   │       │       │   └── route.ts  ← POST (upsert evaluation)
+│   │       │       ├── evaluate/route.ts        ← POST (upsert evaluation)
 │   │       │       └── attachments/
-│   │       │           └── route.ts  ← POST (upload), GET (download)
-│   │       └── users/
-│   │           └── route.ts          ← POST (register)
+│   │       │           ├── route.ts             ← POST (upload)
+│   │       │           └── [attachmentId]/route.ts  ← GET (download)
+│   │       └── users/route.ts        ← POST (register)
 │   ├── components/
-│   │   ├── ui/                       ← shadcn/ui generated components (do not edit)
+│   │   ├── ui/                       ← shadcn/ui generated (do not edit)
 │   │   ├── IdeaCard.tsx
-│   │   ├── IdeaForm.tsx              ← Phase 2: becomes dynamic by category
-│   │   ├── StatusBadge.tsx
+│   │   ├── IdeaForm.tsx              ← P3: conditional category fields
+│   │   ├── StatusBadge.tsx           ← maps status → @theme color token
 │   │   ├── EvaluationForm.tsx
-│   │   ├── StatusFilter.tsx          ← client component for admin filter
+│   │   ├── StatusFilter.tsx          ← "use client" — admin filter
 │   │   ├── Navbar.tsx
-│   │   └── AttachmentList.tsx        ← Phase 3: multi-file preview
+│   │   └── AttachmentList.tsx        ← P3: multi-file preview
 │   ├── lib/
 │   │   ├── db/
-│   │   │   ├── index.ts              ← better-sqlite3 singleton connection
-│   │   │   ├── schema.sql            ← CREATE TABLE statements
-│   │   │   └── seed.ts               ← 1 admin + 2 submitter accounts
-│   │   ├── auth.ts                   ← NextAuth config (Credentials provider)
+│   │   │   ├── index.ts              ← better-sqlite3 singleton; runs schema on import
+│   │   │   ├── schema.sql
+│   │   │   └── seed.ts               ← 1 admin + 2 submitters
+│   │   ├── auth.ts                   ← NextAuth config
 │   │   ├── validations.ts            ← Zod schemas (shared client + server)
-│   │   └── utils.ts                  ← cn(), formatDate() (date-fns wrapper)
-│   └── middleware.ts                 ← route guards by role
+│   │   └── utils.ts                  ← cn(), formatDate(), formatDateTime()
+│   └── middleware.ts                 ← role-based route guards
 ├── uploads/                          ← file storage (gitignored, outside public/)
 ├── innovatepam.db                    ← SQLite database (gitignored)
-├── .env.local                        ← NEXTAUTH_SECRET, etc. (gitignored)
-├── .prettierrc                       ← Prettier config
+├── .env.local                        ← NEXTAUTH_SECRET (gitignored)
+├── .prettierrc
 ├── components.json                   ← shadcn/ui config
 └── package.json
 ```
 
----
+**Structure Decision**: Single Next.js project (monorepo). App Router handles both UI and API. No separate backend or frontend directories needed.
 
 ## Design Decisions
 
-### Tailwind CSS v4 `@theme` for Design Tokens
+### Tailwind CSS v4 `@theme` Design Tokens
 
-All brand colours, radii, and spacing overrides live in `globals.css` under `@theme`:
+All brand and status colours live in `globals.css` under `@theme`. No `tailwind.config.ts` in Tailwind v4.
 
 ```css
 /* src/app/globals.css */
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #0057B8;       /* EPAM blue */
-  --color-brand-secondary: #00A9E0;
-  --color-status-submitted: #6B7280;    /* gray-500 */
-  --color-status-under-review: #D97706; /* amber-600 */
-  --color-status-accepted: #16A34A;     /* green-600 */
-  --color-status-rejected: #DC2626;     /* red-600 */
-  --color-status-draft: #9CA3AF;        /* gray-400 */
-  --radius-card: 0.75rem;
+  --color-brand-primary:        #0057B8;   /* EPAM blue */
+  --color-brand-secondary:      #00A9E0;
+  --color-status-submitted:     #6B7280;   /* gray-500 */
+  --color-status-under-review:  #D97706;   /* amber-600 */
+  --color-status-accepted:      #16A34A;   /* green-600 */
+  --color-status-rejected:      #DC2626;   /* red-600 */
+  --color-status-draft:         #9CA3AF;   /* gray-400 */
+  --radius-card:                0.75rem;
 }
 ```
-
-shadcn/ui components inherit these tokens automatically. `StatusBadge` maps idea status → `--color-status-*` token.
-
----
 
 ### SQLite Schema
 
 ```sql
--- src/lib/db/schema.sql
-
 CREATE TABLE IF NOT EXISTS users (
-  id          TEXT PRIMARY KEY,
-  name        TEXT NOT NULL,
-  email       TEXT NOT NULL UNIQUE,
+  id            TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  email         TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role        TEXT NOT NULL CHECK(role IN ('submitter', 'admin')),
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  role          TEXT NOT NULL CHECK(role IN ('submitter','admin')),
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS ideas (
-  id          TEXT PRIMARY KEY,
-  title       TEXT NOT NULL,
-  description TEXT NOT NULL,
-  category    TEXT NOT NULL CHECK(category IN (
-                'Technical', 'Process Improvement',
-                'Client Solutions', 'Cost Reduction', 'Employee Experience'
-              )),
-  status      TEXT NOT NULL DEFAULT 'submitted'
-              CHECK(status IN ('submitted','under_review','accepted','rejected','draft')),
-  category_metadata TEXT,              -- JSON blob (Phase 2)
-  submitter_id TEXT NOT NULL REFERENCES users(id),
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  id                TEXT PRIMARY KEY,
+  title             TEXT NOT NULL,
+  description       TEXT NOT NULL,
+  category          TEXT NOT NULL CHECK(category IN (
+                      'Technical','Process Improvement',
+                      'Client Solutions','Cost Reduction','Employee Experience'
+                    )),
+  status            TEXT NOT NULL DEFAULT 'submitted'
+                    CHECK(status IN ('submitted','screening','under_review','accepted','rejected','draft')),
+  category_metadata TEXT,               -- JSON blob; Smart Forms (Phase 2)
+  is_anonymous      INTEGER NOT NULL DEFAULT 0,  -- Phase 6b: per-idea anonymous flag
+  submitter_id      TEXT NOT NULL REFERENCES users(id),
+  created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS attachments (
-  id          TEXT PRIMARY KEY,
-  idea_id     TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
-  filename    TEXT NOT NULL,
-  filepath    TEXT NOT NULL,
-  mimetype    TEXT NOT NULL,
-  size        INTEGER NOT NULL,
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  id         TEXT PRIMARY KEY,
+  idea_id    TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
+  filename   TEXT NOT NULL,
+  filepath   TEXT NOT NULL,
+  mimetype   TEXT NOT NULL,
+  size       INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS evaluations (
-  id          TEXT PRIMARY KEY,
-  idea_id     TEXT NOT NULL UNIQUE REFERENCES ideas(id) ON DELETE CASCADE,
+  id           TEXT PRIMARY KEY,
+  idea_id      TEXT NOT NULL UNIQUE REFERENCES ideas(id) ON DELETE CASCADE,
   evaluator_id TEXT NOT NULL REFERENCES users(id),
-  decision    TEXT NOT NULL CHECK(decision IN ('under_review','accepted','rejected')),
-  notes       TEXT,
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  decision     TEXT NOT NULL CHECK(decision IN ('screening','under_review','accepted','rejected')),
+  notes        TEXT,
+  scores       TEXT,   -- JSON: {innovation, feasibility, impact, clarity} Phase 7
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
--- UNIQUE on idea_id enforces CL-011: one evaluation per idea (upsert pattern)
--- 'submitted' intentionally excluded from decision enum: it is the system-assigned initial status, not an evaluator choice
-```
 
----
+CREATE TABLE IF NOT EXISTS review_stage_history (  -- Phase 5
+  id           TEXT PRIMARY KEY,
+  idea_id      TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
+  from_status  TEXT,
+  to_status    TEXT NOT NULL,
+  evaluator_id TEXT NOT NULL REFERENCES users(id),
+  notes        TEXT,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS settings (  -- Phase 6
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO settings (key, value) VALUES ('blind_mode', '0');
+```
 
 ### Authentication Flow
 
 ```
-POST /api/users          → register (bcryptjs.hash, insert user)
-POST /api/auth/callback/credentials → NextAuth verifies email+password
-middleware.ts            → reads session token, enforces role guards:
-  /admin/*               → role === 'admin' only  (→ /dashboard if not)
-  /dashboard, /submit, /ideas/* → any authenticated user (→ /login if not)
-  /login, /register      → redirect to role destination if already logged in
+POST /api/users              → register; bcryptjs.hash(password, 12); INSERT INTO users
+POST /api/auth/callback/credentials → NextAuth Credentials provider; bcryptjs.compare
+middleware.ts                → reads JWT via auth(); enforces:
+  /admin/*                   → role === 'admin'  (else → /dashboard)
+  /dashboard, /submit,
+  /ideas/*                   → authenticated     (else → /login)
+  /login, /register          → redirect if already authenticated
 ```
 
-JWT payload: `{ id, name, email, role }`. Expiry: 24h (CL-012).
-
----
+JWT payload: `{ id, name, email, role }`. Secret: `NEXTAUTH_SECRET`. Expiry: 24 h (CL-012).
 
 ### File Upload Flow
 
 ```
-Client → multipart/form-data POST /api/ideas/[id]/attachments
+Client  → multipart/form-data POST /api/ideas/[id]/attachments
 Server:
-  1. Parse with native Request.formData()
+  1. Request.formData() — no extra middleware
   2. Validate MIME type against allowlist (CL-005):
      PDF, DOCX, PPTX, XLSX, PNG, JPG/JPEG, GIF, MP4
   3. Validate size ≤ 10 MB
-  4. Write to uploads/<idea-id>/<uuid>-<filename>
-  5. Insert row into attachments table
-  6. Return { id, filename, size }
+  4. Sanitise filename; write to uploads/<idea-id>/<uuid>-<sanitised-name>
+  5. INSERT INTO attachments
+  6. Return { id, filename, size, mimetype }
 
 Download: GET /api/ideas/[id]/attachments/[attachmentId]
-  → verifies session + ownership/admin role (CL-007)
-  → streams file from disk
+  → verify session + (submitter_id === user.id OR role === 'admin') (CL-007)
+  → stream file from disk with correct Content-Type
 ```
 
----
-
-### Date Formatting Convention
-
-All dates displayed in the UI use `date-fns/format`:
+### Date Formatting
 
 ```ts
 // src/lib/utils.ts
 import { format } from 'date-fns'
-export const formatDate = (iso: string) => format(new Date(iso), 'MMM d, yyyy')
+export const formatDate     = (iso: string) => format(new Date(iso), 'MMM d, yyyy')
 export const formatDateTime = (iso: string) => format(new Date(iso), 'MMM d, yyyy HH:mm')
 ```
-
----
 
 ### shadcn/ui Component Usage Map
 
 | UI Element | shadcn Component |
 |---|---|
-| Forms | `<Form>`, `<FormField>`, `<FormItem>`, `<FormMessage>` |
-| Inputs | `<Input>`, `<Textarea>`, `<Select>` |
-| Status badge | `<Badge>` with `--color-status-*` token |
-| Navigation | `<Button>`, `<DropdownMenu>` |
-| Success/error feedback | `<Sonner>` toast (via `sonner`) |
-| Dialogs / confirmations | `<Dialog>`, `<AlertDialog>` |
-| Cards | `<Card>`, `<CardHeader>`, `<CardContent>` |
-| Loading skeleton | `<Skeleton>` |
-| Admin stats | `<Card>` grid |
-| Empty states | Custom with `<Card>` + `<Button>` |
+| Forms | `Form`, `FormField`, `FormItem`, `FormMessage` |
+| Text inputs | `Input`, `Textarea` |
+| Dropdowns | `Select`, `SelectItem` |
+| Status badge | `Badge` + `--color-status-*` token |
+| Buttons / navigation | `Button`, `DropdownMenu` |
+| Toast feedback | `Sonner` (via `sonner`) |
+| Dialogs | `Dialog`, `AlertDialog` |
+| Cards / layout | `Card`, `CardHeader`, `CardContent` |
+| Loading states | `Skeleton` |
+| Empty states | `Card` + `Button` (custom layout) |
 
----
+### Zod Validation Schemas
+
+```ts
+// src/lib/validations.ts
+RegisterSchema:   { name: string(1..100), email: email, password: string(min 8) }
+LoginSchema:      { email: email, password: string(min 1) }
+IdeaSchema:       { title: string(1..100), description: string(1..2000),
+                    category: enum(5 values), categoryMetadata?: object }
+EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?: string }
+```
 
 ## Implementation Phases
 
 ### Phase 0 — Project Scaffold
 1. `npx create-next-app@latest innovatepam --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
-2. `npx shadcn@latest init` — select New York style, CSS variables on
-3. Install deps: `better-sqlite3 bcryptjs next-auth zod date-fns uuid sonner`
-4. Install dev deps: `@types/better-sqlite3 @types/bcryptjs prettier prettier-plugin-tailwindcss`
+2. `npx shadcn@latest init` — New York style, CSS variables on
+3. `npm install better-sqlite3 bcryptjs next-auth zod date-fns uuid sonner`
+4. `npm install -D @types/better-sqlite3 @types/bcryptjs prettier prettier-plugin-tailwindcss`
 5. Create `.prettierrc`
 6. Configure `@theme` tokens in `globals.css`
-7. Create `uploads/` dir, add to `.gitignore` along with `.github/`
+7. Create `uploads/` dir; add to `.gitignore` (also: `innovatepam.db`, `.env.local`, `.github/`)
 8. Create `.env.local` with `NEXTAUTH_SECRET`
 
-### Phase 1 — Database + Auth
-1. Write `schema.sql` and `src/lib/db/index.ts` (singleton, runs schema on startup)
-2. Write `seed.ts` (1 admin, 2 submitters)
+### Phase 1 — Database + Auth (US1)
+1. Write `schema.sql` and `src/lib/db/index.ts` (singleton; runs schema idempotently on import)
+2. Write `seed.ts` (1 admin `admin@epam.com / Admin1234!`, 2 submitters)
 3. Configure NextAuth in `src/lib/auth.ts` + `api/auth/[...nextauth]/route.ts`
 4. Write `middleware.ts` for role-based route guards
-5. Build `/register` and `/login` pages with shadcn `<Form>` + Zod validation
+5. Build `/register` and `/login` pages with `Form` + Zod + `react-hook-form`
+6. Implement `POST /api/users` (register endpoint)
 
-### Phase 2 — Idea Submission
-1. Create `validations.ts` — `IdeaSchema`, `AttachmentSchema`
-2. Build `POST /api/ideas` route with Zod validation
+### Phase 2 — Idea Submission (US2)
+1. Add `IdeaSchema` to `validations.ts`
+2. Build `POST /api/ideas` route (validate → uuid → insert → 201)
 3. Build `POST /api/ideas/[id]/attachments` upload route
 4. Build `/submit` page with `IdeaForm` component
-5. Redirect to `/dashboard` with toast on success (CL-003)
+5. Redirect `/dashboard` + success toast on submit (CL-003)
 
-### Phase 3 — Dashboard + Detail View
-1. Build `GET /api/ideas` (submitter: own ideas; admin: all)
-2. Build `GET /api/ideas/[id]` (with ownership/draft checks)
+### Phase 3 — Dashboard + Detail View (US3)
+1. Build `GET /api/ideas` (submitter: own ideas; admin: all excluding drafts)
+2. Build `GET /api/ideas/[id]` (ownership check + draft guard)
 3. Build attachment download route (auth-gated per CL-007)
-4. Build `/dashboard` page with `IdeaCard` + `StatusBadge` + empty state
-5. Build `/ideas/[id]` detail page
+4. Build `/dashboard` page — `IdeaCard` list + `StatusBadge` + empty state
+5. Build `/ideas/[id]` shared detail page
 
-### Phase 4 — Admin Panel + Evaluation
-1. Build `POST /api/ideas/[id]/evaluate` (upsert evaluation, update idea status)
-2. Build `/admin` dashboard (counts per status)
-3. Build `/admin/ideas` list with status filter
+### Phase 4 — Admin Panel + Evaluation (US4, US5)
+1. Build `POST /api/ideas/[id]/evaluate` (upsert evaluation; update idea status atomically)
+2. Build `/admin` page (counts per status using `Card` grid)
+3. Build `/admin/ideas` list with `StatusFilter` client component
 4. Build `/admin/ideas/[id]/evaluate` page with `EvaluationForm`
 
-### Phase 5+ — Later Phases (Project Roadmap Phases 2–4)
-- Phase 2 (Smart Forms): conditional fields per category, store in `category_metadata` JSON
-- Phase 3 (Multi-Media): multiple files + image previews via `AttachmentList`
-- Phase 4 (Drafts): "Save Draft" button, "My Drafts" section, edit-draft flow
+### Phase 5 — Smart Submission Forms (US6)
+1. Make `IdeaForm` dynamic: reveal category-specific fields on category change
+2. Persist additional fields in `category_metadata` JSON column
+3. Update `IdeaSchema` to conditionally require category fields
 
----
+### Phase 6 — Multi-Media Attachments (US7)
+1. Extend upload route to accept multiple files per request (up to 5)
+2. Build `AttachmentList` component with image inline preview / download fallback
+3. Integrate into detail page
+
+### Phase 7 — Draft Management (US8)
+1. Add `?status=draft` path to `POST /api/ideas` + `PATCH /api/ideas/[id]` for edits
+2. "Save Draft" button on `IdeaForm`
+3. "My Drafts" section on `/dashboard`
+4. Draft detail + edit flow; "Submit" button transitions status → `submitted`
+5. Guard: 403 for admin access to draft detail page (CL-010)
+
+### Phase 8 — Multi-Stage Review Pipeline (US9)
+1. Add `screening` to `ideas.status` CHECK constraint (DB migration)
+2. Create `review_stage_history` table
+3. Update `EvaluationSchema` to include `screening` in decision enum
+4. Replace single-decision dropdown in `EvaluationForm` with stage-aware action buttons (`TRANSITIONS` map)
+5. Update `POST /api/ideas/[id]/evaluate` to log transitions in `review_stage_history`
+6. Display Review History timeline on admin detail page
+7. Add `StatusBadge` colour for `screening` (purple `#7C3AED`)
+
+### Phase 9 — Blind Review & Anonymous Submission (US10)
+1. Create `settings` table; seed `blind_mode = '0'`
+2. Add `is_anonymous INTEGER NOT NULL DEFAULT 0` to `ideas`
+3. Create `src/lib/settings.ts` (`isBlindMode()`, `setBlindMode()`)
+4. Create `GET/POST /api/admin/blind-mode` route (admin only)
+5. Create `BlindModeToggle` client component with optimistic UI
+6. Add anonymous checkbox to `IdeaForm`; thread `isAnonymous` through POST/PATCH
+7. Admin list + detail pages: show "Anonymous" if `is_anonymous = 1` OR blind mode on
+8. Submitter detail page: show "🔒 Submitted anonymously" badge when applicable
+
+### Phase 10 — Scoring System (US11)
+1. Add `scores TEXT` column to `evaluations` (DB migration)
+2. Create `IdeaScores` type; add `ScoresSchema` (each dimension: int 1–5)
+3. Add `scores` field to `EvaluationSchema`
+4. Update `POST /api/ideas/[id]/evaluate` to persist scores as JSON
+5. Add 4-dimension score picker UI to `EvaluationForm` (click 1–5 bars + live average)
+6. Display Scores card with bar indicators on admin detail page
+7. Display scores in evaluation section on submitter detail page
 
 ## Complexity Tracking
 
-No constitution violations. All decisions stay within the permitted stack.
+No constitution violations. All dependencies are on the permitted list. No additional justification required.

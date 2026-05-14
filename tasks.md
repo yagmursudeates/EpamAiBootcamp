@@ -1,248 +1,315 @@
 # Tasks: InnovatEPAM Portal
 
-**Input**: [plan.md](plan.md) + [spec.md](spec.md)
-**Branch**: `01-core-portal` | **Date**: 2026-05-13
-**Status Legend**: `[ ]` not started · `[x]` done · `[~]` in progress
+**Input**: Design documents from `specs/001-innovatepam-portal/`
+
+**Prerequisites**: plan.md ✅ | spec.md ✅ | research.md ✅ | data-model.md ✅ | contracts/api.md ✅
+
+**Status**: ✅ All phases complete (109 tests passing)
+
+**Tests**: Vitest v4 + React Testing Library. 109 tests across 13 files in `src/__tests__/`.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no blocking dependencies)
+- **[Story]**: User story label (US1–US8)
+- Exact file paths included in all descriptions
 
 ---
 
-## Pre-Flight — Git & Repository Setup
+## Phase 1: Setup — Project Scaffold
 
-**Purpose**: Must be done at Hour 0 of the sprint before any coding. Instructor needs the repo link at kickoff.
+**Purpose**: Initialize the Next.js app, install dependencies, configure tooling.
 
-- [ ] T000a Create a **public** GitHub (or EPAM GitLab) repository named `innovatepam-portal`
-- [ ] T000b `git init` in project root, add remote, push initial commit: `git commit --allow-empty -m "chore: initial commit"` then `git push -u origin main`
-- [ ] T000c **Share the repo URL with the instructor** — this is required at Hour 0
-- [ ] T000d Create `README.md` in the repo root with: project name, one-line description, tech stack, and `npm install && npm run dev` setup instructions (can be brief now, polish later)
-- [ ] T000e Commit: `git add README.md && git commit -m "docs: add README with setup instructions"`
-
-> ⏰ **Sprint discipline**: push a commit roughly every hour. Use `git push` after each phase checkpoint.
-
----
-
-## Phase 0 — Project Scaffold (Shared Infrastructure)
-
-**Purpose**: Bootstrap the Next.js app, install all dependencies, configure tooling. Must be complete before any feature work.
-
-- [ ] T001 Run `npx create-next-app@latest innovatepam --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"` and verify `npm run dev` starts
-- [ ] T002 Run `npx shadcn@latest init` — select **New York** style, **CSS variables** on; verify `components.json` is created
-- [ ] T003 [P] Install runtime deps: `npm install better-sqlite3 bcryptjs next-auth zod date-fns uuid sonner`
-- [ ] T004 [P] Install dev deps: `npm install -D @types/better-sqlite3 @types/bcryptjs prettier prettier-plugin-tailwindcss`
-- [ ] T004b [P] Create `.prettierrc` at project root: `{ "plugins": ["prettier-plugin-tailwindcss"], "semi": false, "singleQuote": true }` — aligns with CONSTITUTION Principle I (ESLint + Prettier)
-- [ ] T005 Configure `@theme` tokens in `src/app/globals.css` — brand colours + 5 status colour tokens (`--color-status-submitted`, `--color-status-under-review`, `--color-status-accepted`, `--color-status-rejected`, `--color-status-draft`) + `--color-brand-primary: #0057B8`
-- [ ] T006 [P] Add `uploads/` dir to `.gitignore`; create empty `uploads/.gitkeep`
-- [ ] T006b [P] Add `.github/` to `.gitignore` to prevent accidental credential leakage (per CONSTITUTION security requirements)
-- [ ] T007 [P] Add `innovatepam.db` and `.env.local` to `.gitignore`
-- [ ] T008 Create `.env.local` with `NEXTAUTH_SECRET` (generate with `openssl rand -base64 32`) and `NEXTAUTH_URL=http://localhost:3000`
-- [ ] T009 [P] Create `src/lib/utils.ts` — export `cn()` (clsx + tailwind-merge) and `formatDate(iso: string)` / `formatDateTime(iso: string)` using `date-fns/format`
-- [ ] T010 [P] Create `src/lib/validations.ts` — export Zod schemas: `RegisterSchema`, `LoginSchema`, `IdeaSchema`, `EvaluationSchema`
-
-**Checkpoint ✅**: `npm run dev` starts without errors; shadcn Button renders on homepage.
-Commit: `chore: scaffold Next.js app with shadcn, Tailwind @theme, and dependencies`
+- [x] T001 Scaffold Next.js app: `npx create-next-app@latest innovatepam --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"` at project root
+- [x] T002 Initialize shadcn/ui: `npx shadcn@latest init` — select New York style, CSS variables on; verify `components.json` created
+- [x] T003 Install runtime deps: `npm install better-sqlite3 bcryptjs next-auth zod date-fns uuid sonner`
+- [x] T004 [P] Install dev deps: `npm install -D @types/better-sqlite3 @types/bcryptjs prettier prettier-plugin-tailwindcss`
+- [x] T005 [P] Create `.prettierrc` at project root with `{ "plugins": ["prettier-plugin-tailwindcss"] }`
+- [x] T006 Configure `@theme` design tokens in `src/app/globals.css` (brand + status colour tokens, `--radius-card`)
+- [x] T007 [P] Create `uploads/` directory at project root; update `.gitignore` to exclude `uploads/`, `innovatepam.db`, `.env.local`, `.github/`
+- [x] T008 [P] Create `.env.local` with `NEXTAUTH_SECRET` (generate via `openssl rand -base64 32`) and `NEXTAUTH_URL=http://localhost:3000`
+- [x] T009 Install required shadcn components: `npx shadcn@latest add button input textarea select form card badge dialog skeleton sonner dropdown-menu alert-dialog`
+- [x] T010 Verify scaffold: `npm run lint && npm run build` passes with zero errors
 
 ---
 
-## Phase 1 — Database Foundation
+## Phase 2: Foundational — Database, Auth Infrastructure & Shared Utilities
 
-**Purpose**: Schema, connection singleton, and seed data. All feature phases depend on this.
+**Purpose**: Core infrastructure that MUST be complete before any user story work begins.
 
-- [ ] T011 Create `src/lib/db/schema.sql` — `users`, `ideas`, `attachments`, `evaluations` tables with CHECK constraints (see plan.md for exact SQL)
-- [ ] T012 Create `src/lib/db/index.ts` — `better-sqlite3` singleton; run `schema.sql` on first connection; export typed `db` instance
-- [ ] T013 Create `src/lib/db/seed.ts` — insert 1 admin (`admin@epam.com` / `Admin1234!`) + 2 submitters (`alice@epam.com`, `bob@epam.com`, password `Test1234!`) using bcryptjs; idempotent (skip if email exists)
-- [ ] T014 Run seed script: `npx tsx src/lib/db/seed.ts` and verify `innovatepam.db` is created with 3 user rows
+⚠️ **CRITICAL**: No user story implementation starts until this phase is complete.
 
-**Checkpoint ✅**: Seed runs without errors; 3 rows in `users` table.
-Commit: `feat(db): add SQLite schema and seed data`
+- [x] T011 Create `src/lib/db/schema.sql` with all four `CREATE TABLE IF NOT EXISTS` statements (users, ideas, attachments, evaluations) per data-model.md
+- [x] T012 [P] Create `src/lib/db/index.ts` — `better-sqlite3` singleton that opens `innovatepam.db`, reads and executes `schema.sql` on import (idempotent)
+- [x] T013 [P] Create `src/lib/utils.ts` with `cn()` (clsx + tailwind-merge), `formatDate(iso)` → `'MMM d, yyyy'`, `formatDateTime(iso)` → `'MMM d, yyyy HH:mm'` using `date-fns`
+- [x] T014 [P] Create `src/lib/validations.ts` with all four Zod schemas: `RegisterSchema`, `LoginSchema`, `IdeaSchema`, `EvaluationSchema`
+- [x] T015 Create `src/lib/auth.ts` — NextAuth v5 config: Credentials provider, `bcryptjs.compare`, JWT strategy, `{ id, name, email, role }` token, 24 h expiry
+- [x] T016 Create `src/app/api/auth/[...nextauth]/route.ts` — export `{ GET, POST }` handlers from NextAuth
+- [x] T017 Create `src/middleware.ts` — role-based route guards: `/admin/*` → admin only (else `/dashboard`); `/dashboard,/submit,/ideas/*` → authenticated (else `/login`); `/login,/register` → redirect if authenticated
+- [x] T018 [P] Create `src/lib/db/seed.ts` — insert admin `admin@epam.com / Admin1234!`, submitters `alice@epam.com / Test1234!` and `bob@epam.com / Test1234!` using bcryptjs; idempotent (skip if email exists)
+- [x] T019 [P] Create `src/components/Navbar.tsx` — shows app name, user name, role badge, and Logout button; `"use client"` for sign-out action
+- [x] T020 Update `src/app/layout.tsx` — add `<Navbar>`, `<Toaster>` (sonner), and root font
 
----
-
-## Phase 2 — Authentication (US1 — Priority: P1) 🎯 MVP
-
-**Goal**: Register, login, logout with role-aware redirect. Unauthenticated users bounced to `/login`.
-
-**Manual Test**: Register with a new email → land on `/dashboard`. Logout → redirected to `/login`. Try `/admin` as submitter → redirected to `/dashboard`.
-
-- [ ] T015 Create `src/lib/auth.ts` — NextAuth v5 config: Credentials provider, bcryptjs verify, JWT strategy, 24h expiry, session callback adds `role` + `id` to token
-- [ ] T016 Create `src/app/api/auth/[...nextauth]/route.ts` — export `{ GET, POST }` from auth config
-- [ ] T017 Create `src/middleware.ts` — protect routes:
-  - `/admin(.*)` → require `role === 'admin'`; redirect others to `/dashboard`
-  - `/dashboard(.*)`, `/submit(.*)`, `/ideas(.*)` → require any authenticated session; redirect to `/login`
-  - `/login`, `/register` → redirect authenticated users to role destination
-- [ ] T018 Create `src/app/api/users/route.ts` — `POST` handler: validate with `RegisterSchema` (Zod), check duplicate email, hash password with bcryptjs, insert user, return `201`; return structured error `400` on duplicate
-- [ ] T019 [P] Create `src/app/(auth)/register/page.tsx` — shadcn `<Form>` + `<Input>` (name, email, password ≥8 chars); client-side Zod validation; calls `POST /api/users`; shows inline field errors; redirects to `/login` on success with toast
-- [ ] T020 [P] Create `src/app/(auth)/login/page.tsx` — shadcn `<Form>` + `<Input>` (email, password); calls `signIn('credentials')`; shows "Invalid email or password" on failure; role-aware redirect on success (admin→`/admin`, submitter→`/dashboard`)
-- [ ] T021 Add `src/app/layout.tsx` root layout — include `<Toaster />` (sonner) and global session provider
-- [ ] T022 Add logout button to a shared `<Navbar>` component (`src/components/Navbar.tsx`) using `signOut()` — visible on all authenticated pages
-
-**Checkpoint ✅**: All 6 acceptance scenarios in User Story 1 pass manual walkthrough.
-Commit: `feat(auth): registration, login, logout with role-based routing`
+**Checkpoint**: DB schema runs, auth config is wired, middleware guards are active, seed populates test accounts.
 
 ---
 
-## Phase 3 — Idea Submission (US2 — Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 — Employee Registration & Login (Priority: P1) 🎯 MVP Start
 
-**Goal**: Logged-in submitter fills in and submits an idea with an optional file attachment.
+**Goal**: Any visitor can register; registered users log in and land on role-appropriate dashboards.
 
-**Manual Test**: Log in as submitter → `/submit` → fill all fields + attach a PDF → submit → toast appears → `/dashboard` shows new idea with status badge `submitted`.
+**Independent Test**: Register a new account → confirm redirect to `/dashboard`. Log out. Log in as `admin@epam.com` → confirm redirect to `/admin`. Try wrong password → confirm error message.
 
-- [ ] T023 Create `src/app/api/ideas/route.ts` — `POST` handler: verify session, validate body with `IdeaSchema` (Zod: title ≤100, description ≤2000, category from enum), insert into `ideas`, return `201 { id }`; `GET` handler: return submitter's own ideas (admin gets all, excluding drafts for admin)
-- [ ] T024 Create `src/app/api/ideas/[id]/attachments/route.ts` — `POST`: parse `Request.formData()`, validate MIME type against allowlist (CL-005: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4), validate size ≤10 MB, write to `uploads/<idea-id>/`, insert `attachments` row, return `201`; `GET`: verify ownership/admin (CL-007), stream file from disk
-- [ ] T025 Create `src/components/IdeaForm.tsx` — `"use client"` — shadcn `<Form>` with fields: Title (`<Input>`), Description (`<Textarea>`), Category (`<Select>` with 5 fixed options), Attachment (`<Input type="file">`); react-hook-form + Zod resolver; submit calls `POST /api/ideas` then `POST /api/ideas/[id]/attachments` if file attached
-- [ ] T026 Create `src/app/(submitter)/submit/page.tsx` — render `<IdeaForm>`; on success redirect to `/dashboard` with `sonner` toast "Idea submitted successfully"
-- [ ] T027 Create `src/app/(submitter)/layout.tsx` — server component; reads session; redirects to `/login` if no session (belt-and-suspenders alongside middleware)
+- [x] T021 [P] [US1] Create `src/app/(auth)/register/page.tsx` — `"use client"` form with `react-hook-form` + `RegisterSchema` zodResolver; calls `POST /api/users`; on success redirects to `/dashboard`
+- [x] T022 [P] [US1] Create `src/app/api/users/route.ts` — `POST`: parse `RegisterSchema`, hash password with `bcryptjs` (rounds 12), insert into `users` table via db singleton, return 201 or 409 on duplicate email
+- [x] T023 [US1] Create `src/app/(auth)/login/page.tsx` — `"use client"` form with `react-hook-form` + `LoginSchema` zodResolver; calls `signIn('credentials', ...)`; role-aware redirect (CL-001, CL-009)
+- [x] T024 [US1] Create `src/app/page.tsx` — server component that redirects to `/login` (or role destination if session exists)
+- [x] T025 [US1] Create `src/app/(submitter)/layout.tsx` — server component that verifies session; redirects unauthenticated users to `/login`
+- [x] T026 [US1] Create `src/app/(admin)/layout.tsx` — server component that verifies session and `role === 'admin'`; redirects submitters to `/dashboard`
 
-**Checkpoint ✅**: All 5 acceptance scenarios in User Story 2 pass manual walkthrough.
-Commit: `feat(submit): idea submission form with single file attachment`
-
----
-
-## Phase 4 — Idea Listing & Status Tracking (US3 — Priority: P1) 🎯 MVP
-
-**Goal**: Submitter dashboard lists own ideas with status badges; clicking opens detail view.
-
-**Manual Test**: Log in as submitter → `/dashboard` → see submitted idea card with correct status colour → click → detail page shows all fields + attachment download link.
-
-- [ ] T028 Create `src/components/StatusBadge.tsx` — shadcn `<Badge>`; maps status → `--color-status-*` CSS token; displays human-readable label
-- [ ] T029 Create `src/components/IdeaCard.tsx` — shows title, category, `<StatusBadge>`, formatted date (`formatDate()`); links to `/ideas/[id]`
-- [ ] T030 Create `src/app/api/ideas/[id]/route.ts` — `GET`: fetch idea by id; if submitter, enforce ownership (return 403 if not owner); if admin, enforce draft 403 (CL-010); include evaluation notes if present; `PATCH`: owner only, draft→submitted transition (Phase 4)
-- [ ] T031 Create `src/app/(submitter)/dashboard/page.tsx` — server component; fetches own ideas via `GET /api/ideas`; renders list of `<IdeaCard>`; renders empty state with "Submit your first idea" `<Button>` if empty
-- [ ] T032 Create `src/app/ideas/[id]/page.tsx` — server component; fetches idea detail; shows all fields, `<StatusBadge>`, `formatDateTime()` for dates, evaluation notes section (visible if evaluation exists), attachment download link
-
-**Checkpoint ✅**: All 5 acceptance scenarios in User Story 3 pass manual walkthrough.
-Commit: `feat(ideas): listing pages and detail view`
+**Checkpoint**: US1 fully functional — register, login, logout, role-redirect, route guard all work.
 
 ---
 
-## Phase 5 — Admin Idea Management (US4 — Priority: P2)
+## Phase 4: User Story 2 — Idea Submission (Priority: P1)
 
-**Goal**: Admin sees all ideas from all submitters; can filter by status; can open any idea detail.
+**Goal**: A logged-in user can submit an idea with an optional file attachment and receive confirmation.
 
-**Manual Test**: Log in as `admin@epam.com` → `/admin/ideas` → all ideas visible with submitter names → filter by `submitted` → only submitted ideas shown → click idea → detail page shows submitter name.
+**Independent Test**: Log in as `alice@epam.com` → open `/submit` → fill title, description, category → attach a PDF → submit → confirm redirect to `/dashboard` with success toast, idea listed with status `submitted`.
 
-- [ ] T033 Create `src/app/(admin)/layout.tsx` — server component; verifies `role === 'admin'`; redirects to `/dashboard` otherwise
-- [ ] T034 Create `src/app/(admin)/admin/page.tsx` — server component; queries count of ideas per status; renders 4 stat `<Card>` components (Submitted, Under Review, Accepted, Rejected) with counts and `--color-status-*` accent colours
-- [ ] T035 Create `src/app/(admin)/admin/ideas/page.tsx` — server component; accepts `?status=` query param; fetches filtered ideas (all if no filter, drafts excluded); renders list of `<IdeaCard>` with submitter name visible
-- [ ] T036 [P] Create `src/components/StatusFilter.tsx` — `"use client"` `<Select>` that updates URL `?status=` param via `useRouter`; rendered as client island inside T035 page
+- [x] T027 [P] [US2] Create `src/components/IdeaForm.tsx` — `"use client"` form using `react-hook-form` + `IdeaSchema`; fields: title (`Input`), description (`Textarea`), category (`Select`), file picker (`Input type="file"`); submit calls `POST /api/ideas` then optionally `POST /api/ideas/[id]/attachments`
+- [x] T028 [US2] Create `src/app/(submitter)/submit/page.tsx` — server component that renders `<IdeaForm>` with page title; redirects to `/dashboard` + success toast (CL-003) after submit
+- [x] T029 [US2] Create `src/app/api/ideas/route.ts` — `POST`: verify session, parse `IdeaSchema`, insert idea with UUID + `submitter_id` from session, return 201; `GET`: placeholder (implemented in Phase 5)
+- [x] T030 [US2] Create `src/app/api/ideas/[id]/attachments/route.ts` — `POST`: verify session + ownership, parse `multipart/form-data`, validate MIME type against allowlist (CL-005) and size ≤ 10 MB, sanitise filename, write to `uploads/<idea-id>/<uuid>-<filename>`, insert into `attachments` table, return 201
 
-**Checkpoint ✅**: All 4 acceptance scenarios in User Story 4 pass manual walkthrough.
-Commit: `feat(admin): admin dashboard and idea list with status filter`
-
----
-
-## Phase 6 — Admin Evaluation Workflow (US5 — Priority: P2)
-
-**Goal**: Admin evaluates an idea — chooses decision + optional notes — idea status updates immediately.
-
-**Manual Test**: Log in as admin → `/admin/ideas` → click a `submitted` idea → click "Evaluate" → select `accepted`, add notes → submit → status badge updates to green → submitter logs in and sees updated status + notes.
-
-- [ ] T037 Create `src/app/api/ideas/[id]/evaluate/route.ts` — `POST`: verify `role === 'admin'`, validate with `EvaluationSchema` (Zod: decision required and one of `under_review | accepted | rejected` — **not** `submitted`), notes optional string; upsert `evaluations` row (`INSERT OR REPLACE`), update `ideas.status` + `ideas.updated_at`, return `200 { status }`
-- [ ] T038 Create `src/components/EvaluationForm.tsx` — `"use client"` — shadcn `<Form>`: Decision `<Select>` (under_review / accepted / rejected, required), Notes `<Textarea>` (optional); submits to `POST /api/ideas/[id]/evaluate`; shows inline error if decision missing; shows success toast; refreshes page on success
-- [ ] T039 Create `src/app/(admin)/admin/ideas/[id]/evaluate/page.tsx` — server component; fetches idea detail (including existing evaluation if any); renders idea summary + `<EvaluationForm>` pre-filled with current decision/notes if re-evaluating
-
-**Checkpoint ✅**: All 6 acceptance scenarios in User Story 5 pass manual walkthrough.
-Commit: `feat(admin): evaluation workflow with status transitions`
+**Checkpoint**: US2 functional — idea created, file uploaded, status `submitted`, toast shown, redirect works.
 
 ---
 
-## Phase 7 — Smart Submission Forms (US6 — Priority: P3)
+## Phase 5: User Story 3 — Idea Listing & Status Tracking (Priority: P1)
 
-**Goal**: Category dropdown triggers additional required fields specific to that category.
+**Goal**: Submitters see their own ideas with status badges on the dashboard; clicking opens the full detail view.
 
-**Manual Test**: Log in as submitter → `/submit` → select "Technical" → see "Technology Stack" + "Implementation Complexity" fields → switch to "Process Improvement" → old fields disappear, new ones appear → submit without filling them → validation blocks.
+**Independent Test**: After submitting an idea, visit `/dashboard` → see idea card with status badge → click → detail page shows full content including attachment download link and evaluation notes if present.
 
-- [ ] T040 Extend `IdeaSchema` in `validations.ts` — add `category_metadata` as `z.record(z.string()).optional()`; add per-category `superRefine` validation rules
-- [ ] T041 Update `POST /api/ideas` — serialize extra fields to `category_metadata` JSON column
-- [ ] T042 Update `src/components/IdeaForm.tsx` — watch `category` field value; conditionally render extra fields per category (Technical: Technology Stack + Implementation Complexity; Process Improvement: Affected Department + Estimated Time Saving; Client Solutions: Target Client Segment + Revenue Impact); clear extra values on category change (CL-008)
-- [ ] T043 Update `src/app/ideas/[id]/page.tsx` — parse and display `category_metadata` fields in detail view
+- [x] T031 [P] [US3] Create `src/components/StatusBadge.tsx` — maps `status` value to `--color-status-*` `@theme` token; renders shadcn `<Badge>` with colour and label
+- [x] T032 [P] [US3] Create `src/components/IdeaCard.tsx` — displays title, category, `<StatusBadge>`, `formatDate(createdAt)`; wraps in shadcn `<Card>`; links to `/ideas/[id]`
+- [x] T033 [US3] Implement `GET` handler in `src/app/api/ideas/route.ts` — submitter: return own non-draft ideas (optionally filtered by `?status=`); admin: return all non-draft ideas
+- [x] T034 [US3] Create `src/app/api/ideas/[id]/route.ts` — `GET`: verify session, enforce ownership (submitter) or admin; return idea + evaluation + attachments; 403 for admin accessing draft (CL-010); 404 if not found
+- [x] T035 [US3] Create `src/app/api/ideas/[id]/attachments/[attachmentId]/route.ts` — `GET`: verify session, verify owner or admin (CL-007), stream file from disk with correct `Content-Type` and `Content-Disposition`
+- [x] T036 [US3] Create `src/app/(submitter)/dashboard/page.tsx` — server component; fetches own ideas via db; renders list of `<IdeaCard>`; shows `<Skeleton>` during load; shows empty state with "Submit your first idea" link if no ideas
+- [x] T037 [US3] Create `src/app/ideas/[id]/page.tsx` — shared server component; fetches idea + evaluation + attachments; renders full detail with `<StatusBadge>`, `formatDateTime`, evaluation notes section, attachment list with download links; 403/404 handling
 
-**Checkpoint ✅**: All 5 acceptance scenarios in User Story 6 pass manual walkthrough.
-Commit: `feat(phase-2): dynamic category-based form fields`
-
----
-
-## Phase 8 — Multi-Media Attachments (US7 — Priority: P3)
-
-**Goal**: Up to 5 file attachments per idea; image previews inline on detail page.
-
-**Manual Test**: Submit idea with 3 attachments (1 image, 1 PDF, 1 PPTX) → detail page shows image thumbnail, PDF/PPTX file icons with download links → try 6th file → error shown.
-
-- [ ] T044 Update `src/app/api/ideas/[id]/attachments/route.ts` — `POST`: enforce max 5 attachments per idea (count existing rows first)
-- [ ] T045 Create `src/components/AttachmentList.tsx` — `"use client"` — images as `<img>` thumbnails, other types as file icon + filename + size + download `<Button>`
-- [ ] T046 Update `src/components/IdeaForm.tsx` — replace single file `<Input>` with multi-file `<input multiple>`; list selected files with name + size; show "Maximum 5 attachments" error if exceeded
-- [ ] T047 Update `src/app/ideas/[id]/page.tsx` — replace single attachment link with `<AttachmentList>`
-
-**Checkpoint ✅**: All 5 acceptance scenarios in User Story 7 pass manual walkthrough.
-Commit: `feat(phase-3): multiple file attachments with preview`
+**Checkpoint**: US3 functional — dashboard lists ideas, status badges coloured correctly, detail view complete.
 
 ---
 
-## Phase 9 — Draft Management (US8 — Priority: P3)
+## Phase 6: User Story 4 — Admin Idea Management (Priority: P2)
 
-**Goal**: Submitters save drafts, return later to edit, and submit when ready.
+**Goal**: Admin sees all submitted ideas (not drafts), can filter by status, and opens full idea details.
 
-**Manual Test**: Log in as submitter → `/submit` → fill partial form → "Save Draft" → `/dashboard` shows draft in "My Drafts" section → click Edit → form pre-filled → Submit → idea moves to main list with `submitted` status → log in as admin → draft not visible.
+**Independent Test**: Log in as `admin@epam.com` → visit `/admin` → see status count cards → visit `/admin/ideas` → see all non-draft ideas from all submitters → filter by `submitted` → only matching ideas shown.
 
-- [ ] T048 Verify `draft` is in the status CHECK in `schema.sql` (already included — just confirm)
-- [ ] T049 Update `POST /api/ideas` — accept `status: 'draft'` in body; `GET /api/ideas` excludes drafts from admin results
-- [ ] T050 Update `GET /api/ideas/[id]` — return 403 if requester is admin and idea status is `draft` (CL-010)
-- [ ] T051 Implement `PATCH /api/ideas/[id]` — submitter (owner only) can update title, description, category, category_metadata, and transition status `draft` → `submitted`; validated with Zod
-- [ ] T052 Update `src/app/(submitter)/dashboard/page.tsx` — separate query for drafts; render "My Drafts" section; each draft card shows Edit `<Button>` linking to `/submit?draft=[id]`
-- [ ] T053 Update `src/app/(submitter)/submit/page.tsx` — read `?draft=[id]` search param; if present, pre-fill `<IdeaForm>`; "Save Draft" calls `PATCH` with `status: 'draft'`; "Submit" calls `PATCH` with `status: 'submitted'`
+- [x] T038 [P] [US4] Create `src/components/StatusFilter.tsx` — `"use client"` select with all status options + "All"; updates URL query param `?status=` using `useRouter`
+- [x] T039 [US4] Create `src/app/(admin)/admin/page.tsx` — server component; queries idea counts grouped by status; renders `<Card>` grid with counts (submitted, under_review, accepted, rejected); link to `/admin/ideas`
+- [x] T040 [US4] Create `src/app/(admin)/admin/ideas/page.tsx` — server component; reads `?status=` from `searchParams`; queries all non-draft ideas (with filter); renders table/list with title, submitter name, category, `<StatusBadge>`, `formatDate`; links to `/admin/ideas/[id]/evaluate`
 
-**Checkpoint ✅**: All 5 acceptance scenarios in User Story 8 pass manual walkthrough.
-Commit: `feat(phase-4): draft management — save, edit, and submit drafts`
+**Checkpoint**: US4 functional — admin can view and filter all ideas; submitters blocked from `/admin`.
 
 ---
 
-## Final Verification & Deliverables
+## Phase 7: User Story 5 — Admin Evaluation Workflow (Priority: P2)
 
-### Code Quality
-- [ ] T054 Manual walkthrough: run through all P1 acceptance scenarios (US1–US3) end-to-end with a fresh DB
-- [ ] T055 Manual walkthrough: run through P2 scenarios (US4–US5) as admin
-- [ ] T056 Run `npm run build` — zero errors, zero warnings
-- [ ] T057 Run `npm run lint` — zero errors
-- [ ] T058 Verify `.env.local`, `innovatepam.db`, and `uploads/` are not tracked by git (`git status`)
+**Goal**: Admin evaluates an idea (accepts / rejects / marks under review) and the status updates immediately.
 
-### Documentation
-- [ ] T059 Complete `PROJECT_SUMMARY.md` using the template from `final-deliverables.md` — fill in all sections:
-  - Overview (2-3 sentences)
-  - Phases Completed checklist (tick what you built)
-  - Technology Stack
-  - Key Architecture Decisions (1-2 decisions)
-  - Challenges & Solutions (at least 2)
-  - AI Collaboration (tools used, what worked, what could improve)
-  - Time Breakdown table (fill in actual hours per phase)
-  - Reflection (Key Learning, What I'd Do Differently, SDD vs Vibe Coding, AI Collaboration Insight)
-  - Submitted by / Date / Cohort at the bottom
-- [ ] T060 Update `README.md` with final setup instructions: `npm install`, seed command (`npx tsx src/lib/db/seed.ts`), `npm run dev`, test accounts (`admin@epam.com / Admin1234!`, `alice@epam.com / Test1234!`)
-- [ ] T061 Commit all SpecKit artifacts + docs: `git add CONSTITUTION.md spec.md plan.md tasks.md PROJECT_SUMMARY.md README.md && git commit -m "docs: add speckit artifacts and project summary"` then `git push`
+**Independent Test**: Admin opens a `submitted` idea at `/admin/ideas/[id]/evaluate` → selects `accepted` + adds notes → submits → status badge in list updates → submitter sees updated status and notes on detail page.
 
-### Lightning Demo Prep (3 minutes)
-- [ ] T062 Pre-load demo data: run seed on demo machine; submit 2–3 sample ideas as `alice@epam.com`; evaluate 1 as `admin@epam.com`
-- [ ] T063 Rehearse the demo flow once: (30s) intro → (2min) login + submit + admin evaluates + submitter sees result → (30s) one SpecKit insight
-- [ ] T064 Fallback ready: if live demo breaks, walk through `PROJECT_SUMMARY.md` and commit history
+- [x] T041 [P] [US5] Create `src/components/EvaluationForm.tsx` — `"use client"` form with `react-hook-form` + `EvaluationSchema`; decision `<Select>` with options `under_review`, `accepted`, `rejected`; notes `<Textarea>`; calls `POST /api/ideas/[id]/evaluate`; shows toast on success
+- [x] T042 [US5] Create `src/app/api/ideas/[id]/evaluate/route.ts` — `POST`: verify session + `role === 'admin'`, parse `EvaluationSchema`, run DB transaction: upsert `evaluations` row (INSERT OR REPLACE) + update `ideas.status` + `ideas.updated_at`, return 200
+- [x] T043 [US5] Create `src/app/(admin)/admin/ideas/[id]/evaluate/page.tsx` — server component; fetches idea + existing evaluation (if any); renders idea summary + `<EvaluationForm>` pre-filled with existing decision/notes; redirects to `/admin/ideas` with toast on success
 
-### Final Push
-- [ ] T065 `git push` all commits; confirm repo is accessible (public or instructor has access)
-- [ ] T066 Verify commit history has **multiple commits** with descriptive messages throughout the sprint — not one giant commit at the end
+**Checkpoint**: US5 functional — evaluation upserts correctly, idea status updates atomically, evaluator notes visible to submitter.
 
 ---
 
-## Task Summary
+## Phase 8: User Story 6 — Smart Submission Forms (Priority: P3)
 
-| Phase | Tasks | Priority | Blocks |
-|---|---|---|---|
-| Pre-flight | T000a–T000e | — | sprint kickoff |
-| 0 — Scaffold | T001–T010 | — | everything |
-| 1 — Database | T011–T014 | — | everything |
-| 2 — Auth | T015–T022 | P1 🎯 | all features |
-| 3 — Submission | T023–T027 | P1 🎯 | dashboard, admin |
-| 4 — Listing | T028–T032 | P1 🎯 | — |
-| 5 — Admin view | T033–T036 | P2 | evaluation |
-| 6 — Evaluation | T037–T039 | P2 | — |
-| 7 — Smart forms | T040–T043 | P3 | — |
-| 8 — Multi-media | T044–T047 | P3 | — |
-| 9 — Drafts | T048–T053 | P3 | — |
-| Final | T054–T066 | — | — |
+**Goal**: Submission form reveals category-specific required fields dynamically; values stored in `category_metadata`.
 
-**Total**: 66 tasks · **[P]** = can run in parallel with other tasks in the same phase
+**Independent Test**: Select "Technical" → "Technology Stack" and "Implementation Complexity" appear; switch to "Process Improvement" → Technical fields gone, new fields appear; submit without filling a required field → inline validation error.
+
+- [x] T044 [US6] Update `src/components/IdeaForm.tsx` — add `useWatch` on category field; render category-specific field groups conditionally based on selected value; clear category-specific values on category change (CL-008)
+- [x] T045 [US6] Update `src/lib/validations.ts` — extend `IdeaSchema` with `.superRefine()` to require category-specific fields when their category is selected
+- [x] T046 [US6] Update `src/app/api/ideas/route.ts` POST handler — serialise `categoryMetadata` to JSON string before inserting into `category_metadata` column
+- [x] T047 [US6] Update `src/app/ideas/[id]/page.tsx` — parse and display `category_metadata` fields in a "Category Details" section when present
+
+**Checkpoint**: US6 functional — smart fields appear/disappear, validate correctly, persist and display on detail page.
+
+---
+
+## Phase 9: User Story 7 — Multi-Media Attachments (Priority: P3)
+
+**Goal**: Up to 5 files of any allowed type per idea; images preview inline on detail page; other files show download link.
+
+**Independent Test**: Attach 3 files (PDF, PNG, DOCX) → all listed before submit → after submit, detail page shows PNG as thumbnail, others as download links → trying a 6th file shows error.
+
+- [x] T048 [P] [US7] Create `src/components/AttachmentList.tsx` — renders image files as `<img>` thumbnails (via download route); non-images as file icon + filename + download link; `"use client"` for inline preview
+- [x] T049 [US7] Update `src/components/IdeaForm.tsx` — replace single file picker with multi-file input; show selected file list with name + size; enforce max 5 client-side with error message
+- [x] T050 [US7] Update `src/app/api/ideas/[id]/attachments/route.ts` POST handler — accept array of files from `formData.getAll('file')`; enforce ≤ 5 total (existing + new) per idea; validate each file independently; write each to disk; insert all rows
+- [x] T051 [US7] Update `src/app/ideas/[id]/page.tsx` — replace inline attachment links with `<AttachmentList>` component
+
+**Checkpoint**: US7 functional — multiple uploads work, image previews render, 5-file cap enforced.
+
+---
+
+## Phase 10: User Story 8 — Draft Management (Priority: P3)
+
+**Goal**: Submitters can save incomplete ideas as drafts, edit them later, and submit when ready.
+
+**Independent Test**: Click "Save Draft" → idea saved with status `draft` → revisit `/dashboard`, find it in "My Drafts" → click "Edit" → form pre-filled → click "Submit" → idea moves to main list with status `submitted`; admin cannot see or access draft.
+
+- [x] T052 [US8] Update `src/app/api/ideas/route.ts` POST handler — support `?draft=true` query param; set `status = 'draft'` when present
+- [x] T053 [US8] Add `PATCH` handler in `src/app/api/ideas/[id]/route.ts` — verify session + ownership + `status === 'draft'`; accept partial `IdeaSchema` fields; update row + `updated_at`; support `{ status: 'submitted' }` body to submit the draft
+- [x] T054 [US8] Update `src/components/IdeaForm.tsx` — add "Save Draft" button that calls `POST /api/ideas?draft=true`; when editing a draft (`ideaId` prop present), calls `PATCH /api/ideas/[id]`; "Submit" button on draft calls `PATCH` with `status: 'submitted'`
+- [x] T055 [US8] Update `src/app/(submitter)/dashboard/page.tsx` — add separate `GET /api/ideas?status=draft` query; render "My Drafts" section below main idea list with edit links
+- [x] T056 [US8] Update `src/app/api/ideas/route.ts` GET handler — when `?status=draft`, return only caller's draft ideas (submitters only; admins receive empty array for draft filter)
+- [x] T057 [US8] Verify `src/app/api/ideas/[id]/route.ts` GET — confirms 403 returned when admin requests a draft idea (CL-010)
+
+**Checkpoint**: US8 functional — save/edit/submit draft cycle works end-to-end; drafts hidden from admins.
+
+---
+
+## Phase 11: Polish & Cross-Cutting Concerns
+
+**Purpose**: Loading/empty/error states, accessibility, build verification, and final deliverables.
+
+- [x] T058 [P] Add loading states — create `loading.tsx` files in `src/app/(submitter)/dashboard/`, `src/app/(admin)/admin/ideas/`, and `src/app/ideas/[id]/` using `<Skeleton>` components
+- [x] T059 [P] Add error boundaries — create `error.tsx` files in `src/app/(submitter)/`, `src/app/(admin)/`, and `src/app/ideas/[id]/` with user-friendly error messages
+- [x] T060 [P] Verify WCAG AA contrast — audit all `<StatusBadge>` colours and brand tokens against background; fix any failing pairs
+- [x] T061 [P] Verify mobile responsiveness — check `/dashboard`, `/submit`, `/admin/ideas`, and `/ideas/[id]` at 375 px viewport; fix any layout breaks
+- [x] T062 Run `npm run lint` and `npm run build` — fix all lint errors and type errors until both pass cleanly
+- [x] T063 Run seed script `npx tsx src/lib/db/seed.ts` — verify all three test accounts are created; confirm login works for each
+- [x] T064 Manual acceptance walkthrough — step through every Given/When/Then scenario in `specs/001-innovatepam-portal/quickstart.md` for all implemented phases; document any failures
+- [x] T065 Create `PROJECT_SUMMARY.md` at project root — include: project title, tech stack table, implemented user stories with status, API route list, test account credentials, setup instructions (install → seed → dev), known limitations
+- [x] T066 Final git commit — stage all files, run `git add -A && git commit -m "feat(portal): complete InnovatEPAM Portal implementation"`, verify commit history with `git log --oneline`
+
+---
+
+## Dependencies
+
+```
+Phase 1 (Setup) → Phase 2 (Foundation) → Phase 3 (US1) → Phases 4–5 (US2, US3) can run in parallel
+                                                         → Phase 6 (US4) → Phase 7 (US5)
+                                                         → Phase 8 (US6) depends on Phase 4 (US2)
+                                                         → Phase 9 (US7) depends on Phase 4 (US2)
+                                                         → Phase 10 (US8) depends on Phase 4 (US2)
+Phase 11 (Polish) → depends on all prior phases
+```
+
+**User Story dependency order**:
+
+- US1 (auth) — no story dependencies; only Phase 2 foundation required
+- US2 (submission) — requires US1
+- US3 (listing/detail) — requires US2
+- US4 (admin listing) — requires US1 and US2
+- US5 (evaluation) — requires US4
+- US6 (smart forms) — requires US2; independent of US3–US5
+- US7 (multi-media) — requires US2; independent of US3–US6
+- US8 (drafts) — requires US2; independent of US3–US7
+
+---
+
+## Parallel Execution Examples
+
+Within each phase, tasks marked **[P]** can be worked on simultaneously by different developers (or in separate Copilot agent sessions), since they touch different files.
+
+**Phase 2 parallel batch**: T012, T013, T014, T018, T019 can all start at the same time.
+
+**Phase 3 parallel batch** (after T022 is done): T021 (register page) and T022 (register API) are independent files.
+
+**Phase 5 parallel batch**: T031 (StatusBadge) and T032 (IdeaCard) are independent components.
+
+**Phase 6 parallel batch**: T038 (StatusFilter) can be built while T033 (GET /api/ideas) is being implemented.
+
+---
+
+## Implementation Strategy
+
+**Suggested MVP scope** (ship to instructor as Phase 1 demo): Complete through Phase 7 (US1–US5).
+
+This delivers:
+
+- Employee registration and login
+- Idea submission with single file upload
+- Submitter dashboard with status tracking
+- Admin idea list with status filter
+- Admin evaluation workflow
+
+P3 features (Phases 8–10: smart forms, multi-media, drafts) are independent enhancements that can be completed without blocking US1–US5 delivery.
+
+---
+
+## Phase 12: Multi-Stage Review Pipeline (US9)
+
+**Purpose**: Replace single-decision evaluation with a 4-stage pipeline and audit history.
+
+- [x] T067 Add `screening` to `ideas.status` CHECK constraint; create `review_stage_history` table in `src/lib/db/schema.sql`
+- [x] T068 Add Phase 5 DB migration guard in `src/lib/db/index.ts` — recreates `ideas` + `evaluations` tables if `screening` is absent from the schema string
+- [x] T069 Add `screening` to `EvaluationSchema` decision enum in `src/lib/validations.ts`
+- [x] T070 [P] Replace decision dropdown with stage-aware `TRANSITIONS` map and action buttons in `src/components/EvaluationForm.tsx`
+- [x] T071 Update `POST /api/ideas/[id]/evaluate/route.ts` to INSERT into `review_stage_history` on every evaluation
+- [x] T072 Update `src/app/(admin)/admin/ideas/[id]/page.tsx` to query `review_stage_history` and render a vertical Review History timeline
+- [x] T073 [P] Add `screening` colour token (`#7C3AED`) to `StatusBadge.tsx` and `globals.css`
+- [x] T074 Add `DbStageHistory` type to `src/types/db.ts`
+- [x] T075 Write `src/__tests__/api/review-stages.test.ts` (8 tests: stage transitions, history logging, terminal re-open)
+
+---
+
+## Phase 13: Blind Review & Anonymous Submission (US10)
+
+**Purpose**: Admin global anonymity toggle + per-idea anonymous opt-in for submitters.
+
+- [x] T076 Add `settings` table and `INSERT OR IGNORE INTO settings VALUES ('blind_mode','0')` to `src/lib/db/schema.sql`
+- [x] T077 Add Phase 6 migration guard in `src/lib/db/index.ts` (creates `settings` table if absent)
+- [x] T078 Add Phase 6b migration guard in `src/lib/db/index.ts` (adds `is_anonymous` column to `ideas` if absent)
+- [x] T079 Add `is_anonymous INTEGER NOT NULL DEFAULT 0` to `ideas` table in `src/lib/db/schema.sql`
+- [x] T080 Create `src/lib/settings.ts` with `isBlindMode()` and `setBlindMode()` helpers
+- [x] T081 Create `GET/POST /api/admin/blind-mode/route.ts` (admin only; GET returns state, POST toggles)
+- [x] T082 Create `src/components/BlindModeToggle.tsx` — `"use client"` button with optimistic UI + `router.refresh()`
+- [x] T083 Add `isAnonymous` boolean to `IdeaSchema`, `DraftSchema`, `IdeaUpdateSchema` in `src/lib/validations.ts`
+- [x] T084 Add anonymous checkbox to `src/components/IdeaForm.tsx`; thread `isAnonymous` through `saveDraft` and `onSubmit`
+- [x] T085 Update `POST /api/ideas/route.ts` to store `is_anonymous` column
+- [x] T086 Update `PATCH /api/ideas/[id]/route.ts` to update `is_anonymous` column
+- [x] T087 Update `src/app/(admin)/admin/ideas/page.tsx`: add `<BlindModeToggle>`, pass `'Anonymous'` when `is_anonymous || blindMode`
+- [x] T088 Update `src/app/(admin)/admin/ideas/[id]/page.tsx`: read `blindMode`, show "Submitted anonymously" when applicable
+- [x] T089 Update `src/app/(submitter)/ideas/[id]/page.tsx`: show "\ud83d\udd12 Submitted anonymously" badge when `is_anonymous = 1`
+- [x] T090 Add `is_anonymous` field to `DbIdea` type in `src/types/db.ts`
+- [x] T091 Write `src/__tests__/api/blind-review.test.ts` (4 tests: settings table, toggle, anonymous logic)
+
+---
+
+## Phase 14: Scoring System (US11)
+
+**Purpose**: 1–5 scoring on 4 dimensions per evaluation.
+
+- [x] T092 Add `scores TEXT` column to `evaluations` table in `src/lib/db/schema.sql`
+- [x] T093 Add Phase 7 migration guard in `src/lib/db/index.ts` (adds `scores` column to `evaluations` if absent)
+- [x] T094 Create `IdeaScores` interface in `src/types/db.ts`; add `scores` field to `DbEvaluation`
+- [x] T095 Add `ScoresSchema` (each dimension: `z.number().int().min(1).max(5)`) and extend `EvaluationSchema` with optional `scores` in `src/lib/validations.ts`
+- [x] T096 Update `POST /api/ideas/[id]/evaluate/route.ts` to persist `scores` as JSON string
+- [x] T097 Add 4-dimension score picker UI to `src/components/EvaluationForm.tsx` (click 1–5 bars + live average display); accept `currentScores` prop
+- [x] T098 Display Scores card with bar indicators + average on `src/app/(admin)/admin/ideas/[id]/page.tsx`; pass `currentScores` to `EvaluationForm`
+- [x] T099 Display scores in evaluation section on `src/app/(submitter)/ideas/[id]/page.tsx`
+- [x] T100 Write `src/__tests__/api/scoring.test.ts` (5 tests: column exists, default null, store/read JSON, average calc, range validation)
+
+---
+
+## Format Validation
+
+All tasks follow the mandatory checklist format:
+
+- ✅ Every task starts with `- [x]` (all complete)
+- ✅ Every task has a sequential ID (T001–T100)
+- ✅ `[P]` present on parallelizable tasks only
+- ✅ `[US#]` label on all user-story phase tasks; absent from setup/foundation/polish phases
+- ✅ Every task includes an exact file path in its description

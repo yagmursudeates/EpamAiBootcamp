@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-13
 
-**Status**: Draft
+**Status**: ✅ Completed (all 7 phases)
 
 **Input**: InnovatEPAM Portal is a comprehensive digital platform designed to streamline the innovation process within EPAM, enabling employees to submit creative ideas, facilitating expert evaluation, and managing the implementation of top-tier innovations with dedicated budget allocation.
 
@@ -157,6 +157,60 @@ A submitter can save an incomplete idea as a draft, return later to edit it, and
 
 ---
 
+### User Story 9 — Multi-Stage Review Pipeline (Priority: P3)
+
+An admin moves ideas through a structured 4-stage evaluation pipeline: Submitted → Screening → Under Review → Accepted / Rejected. The full history of stage transitions is recorded and visible.
+
+**Why this priority**: Provides structured workflow beyond a simple accept/reject binary.
+
+**Independent Test**: Admin opens a submitted idea, moves it to Screening, then Under Review, then Accepts it. The Review History timeline shows all three transitions.
+
+**Acceptance Scenarios**:
+
+1. **Given** an admin on a `submitted` idea, **When** they click "Move to Screening", **Then** status becomes `screening` and the transition is logged in review history.
+2. **Given** an admin on a `screening` idea, **When** they click "Move to Under Review", **Then** status becomes `under_review`.
+3. **Given** an admin on an `under_review` idea, **When** they click "Accept" or "Reject", **Then** status becomes `accepted` or `rejected`.
+4. **Given** an admin on a terminal-state idea (`accepted`/`rejected`), **When** they click "Reopen Review", **Then** status returns to `under_review`.
+5. **Given** any stage transition has been made, **When** the admin views the idea detail, **Then** a Review History timeline shows each transition with evaluator name, timestamp, and notes.
+
+---
+
+### User Story 10 — Blind Review & Anonymous Submission (Priority: P3)
+
+Admins can enable a global Blind Review mode that hides all submitter names. Submitters can also opt-in to per-idea anonymity when creating an idea.
+
+**Why this priority**: Reduces bias in evaluation.
+
+**Independent Test**: Admin toggles Blind Review on — all idea cards show "Anonymous". Toggle it off — names reappear. Submitter creates an idea with "Submit anonymously" checked — that idea always shows as anonymous to admins, regardless of blind mode toggle.
+
+**Acceptance Scenarios**:
+
+1. **Given** an admin on `/admin/ideas`, **When** they click the Blind Review toggle, **Then** all submitter names are replaced with "Anonymous" across the list.
+2. **Given** Blind Review is off, **When** a submitter has marked an idea as anonymous, **Then** that idea still shows "Anonymous" to admins.
+3. **Given** a submitter on `/submit`, **When** they check "Submit anonymously", **Then** the idea is stored with `is_anonymous = 1`.
+4. **Given** a submitter viewing their own anonymously-submitted idea, **When** they open the detail page, **Then** a "🔒 Submitted anonymously" badge is shown.
+5. **Given** Blind Review is toggled back off, **When** an admin views ideas, **Then** non-anonymous ideas show real names; anonymous ones remain hidden.
+
+---
+
+### User Story 11 — Scoring System (Priority: P3)
+
+Admins rate each idea on four dimensions (Innovation, Feasibility, Impact, Clarity) using a 1–5 scale as part of the evaluation workflow. Scores are saved with the evaluation and visible to both admins and submitters.
+
+**Why this priority**: Provides quantitative evaluation beyond a binary decision.
+
+**Independent Test**: Admin opens an idea, sets scores on all four dimensions, submits an evaluation. The detail page shows a Scores card with bar indicators and the average score. The submitter sees the scores on their own idea detail page.
+
+**Acceptance Scenarios**:
+
+1. **Given** an admin on an idea's evaluation form, **When** they view it, **Then** a 1–5 score picker is shown for each of Innovation, Feasibility, Impact, and Clarity.
+2. **Given** an admin has set scores, **When** the average is displayed, **Then** it equals the arithmetic mean of all four scores.
+3. **Given** an admin submits an evaluation with scores, **When** any admin views the idea, **Then** a Scores card with bar indicators and average is visible.
+4. **Given** a submitter views their evaluated idea, **When** scores are present, **Then** the four scores and average are shown in the evaluation section.
+5. **Given** an admin re-evaluates an idea, **When** they change scores and submit, **Then** the new scores overwrite the previous ones.
+
+---
+
 ### Edge Cases
 
 - What happens when a file upload partially fails (network drop mid-upload)? → The idea record is not created; return an error and let the user retry.
@@ -193,12 +247,25 @@ A submitter can save an incomplete idea as a draft, return later to edit it, and
 - **FR-019** _(Phase 3)_: System MUST support up to 5 file attachments per idea, with inline preview for images.
 - **FR-020** _(Phase 4)_: System MUST allow submitters to save ideas as drafts and submit them later.
 
+- **FR-021** _(Phase 5)_: `ideas.status` MUST include `screening` as a valid stage.
+- **FR-022** _(Phase 5)_: System MUST record every stage transition in a `review_stage_history` table with evaluator, timestamps, from/to status, and optional notes.
+- **FR-023** _(Phase 5)_: Admin evaluation form MUST present only the valid forward transitions from the current status (no arbitrary jumps except terminal re-open).
+- **FR-024** _(Phase 6)_: System MUST support a global `blind_mode` setting stored in a `settings` table; when enabled, submitter names are hidden from all admin views.
+- **FR-025** _(Phase 6)_: Submitters MUST be able to mark individual ideas as anonymous (`is_anonymous = 1`); anonymous ideas hide the submitter name from admins regardless of global blind mode.
+- **FR-026** _(Phase 6)_: Submitters MUST see a "🔒 Submitted anonymously" indicator on their own anonymously-submitted ideas.
+- **FR-027** _(Phase 7)_: Admin evaluation MUST include 1–5 integer scores on four dimensions: Innovation, Feasibility, Impact, Clarity.
+- **FR-028** _(Phase 7)_: System MUST calculate and display the arithmetic average of the four scores.
+- **FR-029** _(Phase 7)_: Scores MUST be stored as a JSON object in the `evaluations.scores` column and displayed with bar indicators on the detail page.
+- **FR-030** _(Phase 7)_: Submitters MUST be able to see the scores assigned to their evaluated ideas.
+
 ### Key Entities
 
 - **User**: Authenticated person. Key attributes: `id`, `name`, `email`, `password_hash`, `role` (`submitter` | `admin`), `created_at`.
-- **Idea**: Central artifact. Key attributes: `id`, `title`, `description`, `category`, `status`, `submitter_id` (FK → User), `category_metadata` (JSON, Phase 2), `created_at`, `updated_at`.
+- **Idea**: Central artifact. Key attributes: `id`, `title`, `description`, `category`, `status` (`submitted` | `screening` | `under_review` | `accepted` | `rejected` | `draft`), `submitter_id` (FK → User), `category_metadata` (JSON), `is_anonymous` (INTEGER 0/1), `created_at`, `updated_at`.
 - **Attachment**: File linked to an idea. Key attributes: `id`, `idea_id` (FK → Idea), `filename`, `filepath`, `mimetype`, `size`, `created_at`.
-- **Evaluation**: Admin decision on an idea. Key attributes: `id`, `idea_id` (FK → Idea, UNIQUE), `evaluator_id` (FK → User), `decision` (`under_review` | `accepted` | `rejected`), `notes`, `created_at`, `updated_at`. One row per idea (upsert on re-evaluation).
+- **Evaluation**: Admin decision on an idea. Key attributes: `id`, `idea_id` (FK → Idea, UNIQUE), `evaluator_id` (FK → User), `decision` (`screening` | `under_review` | `accepted` | `rejected`), `notes`, `scores` (JSON: `{innovation, feasibility, impact, clarity}`), `created_at`, `updated_at`.
+- **ReviewStageHistory**: Audit log of stage transitions. Key attributes: `id`, `idea_id` (FK → Idea), `from_status`, `to_status`, `evaluator_id` (FK → User), `notes`, `created_at`.
+- **Settings**: Key-value store for global config. Key attributes: `key` (TEXT PRIMARY KEY), `value`. Current entries: `blind_mode` (`'0'` | `'1'`).
 
 ---
 
@@ -216,6 +283,10 @@ A submitter can save an incomplete idea as a draft, return later to edit it, and
 - **SC-008** _(Phase 3)_: Multiple file uploads complete successfully and previews render on the detail page.
 - **SC-009** _(Phase 4)_: A draft can be saved, retrieved, edited, and submitted across separate browser sessions.
 
+- **SC-010** _(Phase 5)_: An admin can move an idea through all four stages and the Review History timeline shows each transition.
+- **SC-011** _(Phase 6)_: Blind Review toggle hides all names instantly; per-idea anonymous flag persists independently of the toggle.
+- **SC-012** _(Phase 7)_: Scores are saved with each evaluation and the average is correctly computed and displayed to both admin and submitter.
+
 ---
 
 ## Assumptions
@@ -225,8 +296,8 @@ A submitter can save an incomplete idea as a draft, return later to edit it, and
 - File storage is local disk (cloud storage is out of scope for all phases).
 - The fixed category list is: **Technical**, **Process Improvement**, **Client Solutions**, **Cost Reduction**, **Employee Experience**.
 - Mobile support is required (responsive layout); native mobile apps are out of scope.
-- Email notifications are out of scope for all phases.
-- Pagination is optional for Phase 1.
+- Email notifications are implemented via `nodemailer` (fire-and-forget); sending is gated by `EMAIL_HOST` env var so the app functions without email config.
+- Pagination is optional.
 - The application runs as a single-instance Node.js process.
 
 ---

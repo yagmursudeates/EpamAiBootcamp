@@ -1,12 +1,12 @@
 # Implementation Plan: InnovatEPAM Portal
 
-**Branch**: `001-innovatepam-portal` | **Date**: 2026-05-13 | **Spec**: [spec.md](spec.md)
+**Branch**: `001-innovatepam-portal` | **Date**: 2026-05-13 | **Status**: ✅ Complete | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/001-innovatepam-portal/spec.md`
 
 ## Summary
 
-Build a full-stack employee innovation management portal using Next.js 14+ App Router. Employees submit ideas with optional file attachments; admins evaluate ideas and update statuses. Authentication is credential-based with role-aware routing (submitter → `/dashboard`, admin → `/admin`). Data is persisted in SQLite via `better-sqlite3`. UI is built entirely with shadcn/ui components styled through Tailwind CSS v4 `@theme` design tokens. Dates formatted with `date-fns`. No automated tests — manual acceptance criteria walkthrough is the quality gate.
+Full-stack employee innovation management portal built with Next.js 16 App Router. Employees submit ideas with optional file attachments and can mark them as anonymous. Admins evaluate ideas through a 4-stage pipeline (Submitted → Screening → Under Review → Accepted/Rejected) with per-stage notes, a 4-dimension 1–5 scoring system, and a global Blind Review toggle. Authentication is credential-based with role-aware routing. Data is persisted in SQLite via `better-sqlite3`. UI is built with shadcn/ui + Tailwind CSS v4 `@theme` design tokens. Tests use Vitest v4 + React Testing Library (109 tests across 13 files).
 
 ## Technical Context
 
@@ -28,7 +28,7 @@ Build a full-stack employee innovation management portal using Next.js 14+ App R
 
 **Storage**: SQLite single file (`innovatepam.db` at project root, gitignored)
 
-**Testing**: None — manual walkthrough against Given/When/Then acceptance scenarios
+**Testing**: Vitest v4 + React Testing Library + jsdom. 109 tests across 13 test files in `src/__tests__/`. In-memory SQLite (`:memory:`) in all DB tests.
 
 **Target Platform**: Local development server (macOS/Linux), modern browser
 
@@ -43,7 +43,7 @@ Build a full-stack employee innovation management portal using Next.js 14+ App R
 - JWT sessions expire in 24 hours (CL-012)
 - `bcryptjs` salt rounds: 12
 
-**Scale/Scope**: Single-instance local app; ~8 pages, ~10 API routes, 4 DB tables
+**Scale/Scope**: Single-instance local app; ~12 pages, ~14 API routes, 6 DB tables
 
 ## Constitution Check
 
@@ -165,8 +165,6 @@ All brand and status colours live in `globals.css` under `@theme`. No `tailwind.
 ### SQLite Schema
 
 ```sql
--- src/lib/db/schema.sql
-
 CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
   name          TEXT NOT NULL,
@@ -185,8 +183,9 @@ CREATE TABLE IF NOT EXISTS ideas (
                       'Client Solutions','Cost Reduction','Employee Experience'
                     )),
   status            TEXT NOT NULL DEFAULT 'submitted'
-                    CHECK(status IN ('submitted','under_review','accepted','rejected','draft')),
-  category_metadata TEXT,               -- JSON blob; used by Smart Forms (P3)
+                    CHECK(status IN ('submitted','screening','under_review','accepted','rejected','draft')),
+  category_metadata TEXT,               -- JSON blob; Smart Forms (Phase 2)
+  is_anonymous      INTEGER NOT NULL DEFAULT 0,  -- Phase 6b: per-idea anonymous flag
   submitter_id      TEXT NOT NULL REFERENCES users(id),
   created_at        TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
@@ -206,13 +205,28 @@ CREATE TABLE IF NOT EXISTS evaluations (
   id           TEXT PRIMARY KEY,
   idea_id      TEXT NOT NULL UNIQUE REFERENCES ideas(id) ON DELETE CASCADE,
   evaluator_id TEXT NOT NULL REFERENCES users(id),
-  decision     TEXT NOT NULL CHECK(decision IN ('under_review','accepted','rejected')),
+  decision     TEXT NOT NULL CHECK(decision IN ('screening','under_review','accepted','rejected')),
   notes        TEXT,
+  scores       TEXT,   -- JSON: {innovation, feasibility, impact, clarity} Phase 7
   created_at   TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
--- UNIQUE(idea_id): one evaluation per idea; upsert replaces on re-evaluation (CL-011)
--- 'submitted' excluded from decision CHECK: system-assigned at creation only
+
+CREATE TABLE IF NOT EXISTS review_stage_history (  -- Phase 5
+  id           TEXT PRIMARY KEY,
+  idea_id      TEXT NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
+  from_status  TEXT,
+  to_status    TEXT NOT NULL,
+  evaluator_id TEXT NOT NULL REFERENCES users(id),
+  notes        TEXT,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS settings (  -- Phase 6
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO settings (key, value) VALUES ('blind_mode', '0');
 ```
 
 ### Authentication Flow
@@ -338,6 +352,34 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 3. "My Drafts" section on `/dashboard`
 4. Draft detail + edit flow; "Submit" button transitions status → `submitted`
 5. Guard: 403 for admin access to draft detail page (CL-010)
+
+### Phase 8 — Multi-Stage Review Pipeline (US9)
+1. Add `screening` to `ideas.status` CHECK constraint (DB migration)
+2. Create `review_stage_history` table
+3. Update `EvaluationSchema` to include `screening` in decision enum
+4. Replace single-decision dropdown in `EvaluationForm` with stage-aware action buttons (`TRANSITIONS` map)
+5. Update `POST /api/ideas/[id]/evaluate` to log transitions in `review_stage_history`
+6. Display Review History timeline on admin detail page
+7. Add `StatusBadge` colour for `screening` (purple `#7C3AED`)
+
+### Phase 9 — Blind Review & Anonymous Submission (US10)
+1. Create `settings` table; seed `blind_mode = '0'`
+2. Add `is_anonymous INTEGER NOT NULL DEFAULT 0` to `ideas`
+3. Create `src/lib/settings.ts` (`isBlindMode()`, `setBlindMode()`)
+4. Create `GET/POST /api/admin/blind-mode` route (admin only)
+5. Create `BlindModeToggle` client component with optimistic UI
+6. Add anonymous checkbox to `IdeaForm`; thread `isAnonymous` through POST/PATCH
+7. Admin list + detail pages: show "Anonymous" if `is_anonymous = 1` OR blind mode on
+8. Submitter detail page: show "🔒 Submitted anonymously" badge when applicable
+
+### Phase 10 — Scoring System (US11)
+1. Add `scores TEXT` column to `evaluations` (DB migration)
+2. Create `IdeaScores` type; add `ScoresSchema` (each dimension: int 1–5)
+3. Add `scores` field to `EvaluationSchema`
+4. Update `POST /api/ideas/[id]/evaluate` to persist scores as JSON
+5. Add 4-dimension score picker UI to `EvaluationForm` (click 1–5 bars + live average)
+6. Display Scores card with bar indicators on admin detail page
+7. Display scores in evaluation section on submitter detail page
 
 ## Complexity Tracking
 
