@@ -83,34 +83,35 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
     if (!title) { toast.error('Title is required to save a draft'); return }
     setSubmitting(true)
     try {
-      const payload = {
+      const basePayload = {
         title,
         description: (document.getElementById('description') as HTMLTextAreaElement | null)?.value ?? '',
         category: selectedCategory ?? undefined,
         categoryMetadata: Object.keys(metadata).length > 0 ? metadata : undefined,
-        status: 'draft' as const,
       }
       let res: Response
       let ideaId: string
       if (isEditMode && draft) {
+        // PATCH only updates fields; status stays as 'draft' (no status field sent)
         res = await fetch(`/api/ideas/${draft.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(basePayload),
         })
         ideaId = draft.id
       } else {
         res = await fetch('/api/ideas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...basePayload, status: 'draft' }),
         })
         const data = await res.json()
         ideaId = data.idea?.id
       }
       if (!res.ok) {
-        const err = isEditMode ? await res.json() : {}
-        toast.error(err.error ?? 'Failed to save draft')
+        const errBody = isEditMode ? await res.json().catch(() => ({})) : {}
+        const errMsg = typeof errBody.error === 'string' ? errBody.error : 'Failed to save draft'
+        toast.error(errMsg)
         return
       }
       for (const file of filesRef.current) {
@@ -141,8 +142,8 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
           body: JSON.stringify({ ...payload, status: 'submitted' }),
         })
         if (!patchRes.ok) {
-          const err = await patchRes.json()
-          toast.error(err.error ?? 'Failed to submit idea')
+          const err = await patchRes.json().catch(() => ({}))
+          toast.error(typeof err.error === 'string' ? err.error : 'Failed to submit idea')
           return
         }
         ideaId = draft.id
