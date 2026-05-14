@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import path from 'path'
+
+export const dynamic = 'force-dynamic'
 import fs from 'fs'
 import { auth } from '@/lib/auth'
 import db from '@/lib/db'

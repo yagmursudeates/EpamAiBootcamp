@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -30,6 +30,15 @@ const CATEGORIES = [
 export default function IdeaForm() {
   const router = useRouter()
   const [files, setFiles] = useState<File[]>([])
+  const filesRef = useRef<File[]>([])
+
+  const updateFiles = (updater: (prev: File[]) => File[]) => {
+    setFiles((prev) => {
+      const next = updater(prev)
+      filesRef.current = next
+      return next
+    })
+  }
   const [submitting, setSubmitting] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [metadata, setMetadata] = useState<Record<string, string>>({})
@@ -70,7 +79,7 @@ export default function IdeaForm() {
       }
       const { idea } = await res.json()
 
-      for (const file of files) {
+      for (const file of filesRef.current) {
         const form = new FormData()
         form.append('file', file)
         const uploadRes = await fetch(`/api/ideas/${idea.id}/attachments`, {
@@ -78,7 +87,8 @@ export default function IdeaForm() {
           body: form,
         })
         if (!uploadRes.ok) {
-          toast.warning(`Failed to upload "${file.name}"`)
+          const err = await uploadRes.json().catch(() => ({}))
+          toast.warning(`"${file.name}" failed: ${err.error ?? uploadRes.status}`)
         }
       }
 
@@ -185,17 +195,37 @@ export default function IdeaForm() {
           type="file"
           multiple
           accept=".pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov"
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
+          onChange={(e) => {
+            const picked = Array.from(e.target.files ?? [])
+            updateFiles((prev) => {
+              const combined = [...prev, ...picked]
+              const seen = new Set<string>()
+              return combined
+                .filter((f) => (seen.has(f.name) ? false : (seen.add(f.name), true)))
+                .slice(0, 5)
+            })
+            // reset input value so the same file can be re-added after removal
+            e.target.value = ''
+          }}
         />
         {files.length > 0 && (
           <ul className="text-xs text-muted-foreground space-y-0.5">
-            {files.map((f) => (
-              <li key={f.name}>• {f.name}</li>
+            {files.map((f, i) => (
+              <li key={f.name} className="flex items-center gap-2">
+                <span>• {f.name}</span>
+                <button
+                  type="button"
+                  className="text-destructive hover:underline"
+                  onClick={() => updateFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                >
+                  ✕
+                </button>
+              </li>
             ))}
           </ul>
         )}
         <p className="text-xs text-muted-foreground">
-          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, WEBP, MP4, MOV · Max 20 MB each
+          Accepted: PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, WEBP, MP4, MOV · Max 20 MB each · Up to 5 files (click multiple times to add more)
         </p>
       </div>
 
