@@ -25,9 +25,10 @@ export default function Navbar() {
   const homeHref = session?.user?.role === 'admin' ? '/admin' : '/dashboard'
 
   return (
-    <nav className="border-b bg-white sticky top-0 z-50">
+    <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href={homeHref} className="font-bold text-[var(--color-brand-primary)] text-lg">
+        <Link href={homeHref} className="font-extrabold text-lg tracking-tight"
+          style={{ background: 'linear-gradient(90deg, oklch(0.45 0.18 255), oklch(0.6 0.15 200))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           InnovatEPAM
         </Link>
 

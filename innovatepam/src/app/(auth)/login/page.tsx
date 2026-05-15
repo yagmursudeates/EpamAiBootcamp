@@ -10,7 +10,6 @@ import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoginSchema, type LoginInput } from '@/lib/validations'
 
 export default function LoginPage() {
@@ -44,12 +43,17 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
-        <CardDescription>Sign in to InnovatEPAM</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="rounded-2xl shadow-2xl overflow-hidden"
+      style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)' }}>
+      <div className="px-8 pt-8 pb-2 text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
+          style={{ background: 'linear-gradient(135deg, oklch(0.45 0.18 255), oklch(0.55 0.15 210))' }}>
+          <span className="text-white text-xl font-bold">I</span>
+        </div>
+        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+        <p className="text-sm text-muted-foreground mt-1">Sign in to InnovatEPAM</p>
+      </div>
+      <div className="px-8 pb-8 pt-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
@@ -65,18 +69,18 @@ export default function LoginPage() {
             )}
           </div>
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting} className="w-full font-semibold">
             {submitting ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="underline underline-offset-4 hover:text-foreground">
+          <Link href="/register" className="font-medium text-primary hover:underline underline-offset-4">
             Register
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
