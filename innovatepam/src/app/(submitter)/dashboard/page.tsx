@@ -26,11 +26,10 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, oklch(0.45 0.18 255), oklch(0.6 0.15 200))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>My Ideas</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">My Ideas</h1>
         <a
           href="/submit"
-          className="inline-flex items-center justify-center rounded-full text-sm font-semibold text-white h-9 px-5 shadow-sm transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(90deg, oklch(0.45 0.18 255), oklch(0.55 0.15 210))' }}
+          className="inline-flex items-center justify-center rounded-lg text-sm font-semibold text-primary-foreground bg-primary h-9 px-4 shadow-sm hover:bg-primary/90 transition-colors"
         >
           + New Idea
         </a>

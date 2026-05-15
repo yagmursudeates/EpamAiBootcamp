@@ -9,7 +9,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RegisterSchema, type RegisterInput } from '@/lib/validations'
 
 export default function RegisterPage() {
@@ -43,12 +42,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create an account</CardTitle>
-        <CardDescription>Join InnovatEPAM to submit ideas</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-8 pt-8 pb-2 text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 bg-primary/10">
+          <span className="text-primary text-xl font-bold">I</span>
+        </div>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Create an account</h1>
+        <p className="text-sm text-muted-foreground mt-1">Join InnovatEPAM to submit ideas</p>
+      </div>
+      <div className="px-8 pb-8 pt-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">Full name</Label>
@@ -75,18 +77,18 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting} className="w-full font-semibold">
             {submitting ? 'Creating account…' : 'Create account'}
           </Button>
         </form>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="underline underline-offset-4 hover:text-foreground">
+          <Link href="/login" className="font-medium text-primary hover:underline underline-offset-4">
             Sign in
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

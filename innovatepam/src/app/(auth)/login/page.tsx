@@ -43,14 +43,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="rounded-2xl shadow-2xl overflow-hidden"
-      style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)' }}>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="px-8 pt-8 pb-2 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
-          style={{ background: 'linear-gradient(135deg, oklch(0.45 0.18 255), oklch(0.55 0.15 210))' }}>
-          <span className="text-white text-xl font-bold">I</span>
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 bg-primary/10">
+          <span className="text-primary text-xl font-bold">I</span>
         </div>
-        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Welcome back</h1>
         <p className="text-sm text-muted-foreground mt-1">Sign in to InnovatEPAM</p>
       </div>
       <div className="px-8 pb-8 pt-4">
