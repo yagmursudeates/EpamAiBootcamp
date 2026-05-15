@@ -55,17 +55,17 @@ Enriches the idea submission experience with two quality-of-life features: dynam
 
 ## 5. Dependencies
 
-| ID  | Dependency                               | Type      | Status  |
-|-----|------------------------------------------|-----------|---------|
-| D-1 | EP-002 (Idea Lifecycle) — form exists    | Technical | Done    |
-| D-2 | EP-001 (Auth) — session required         | Technical | Done    |
-| D-3 | `category_metadata` column in `ideas`    | Technical | Done    |
+| ID  | Dependency                            | Type      | Status |
+| --- | ------------------------------------- | --------- | ------ |
+| D-1 | EP-002 (Idea Lifecycle) — form exists | Technical | Done   |
+| D-2 | EP-001 (Auth) — session required      | Technical | Done   |
+| D-3 | `category_metadata` column in `ideas` | Technical | Done   |
 
 ---
 
 ## 6. User Stories
 
-| Story  | Title                     | Priority | Status |
-|--------|---------------------------|----------|--------|
-| US-006 | Smart Submission Forms    | P3       | Done   |
-| US-007 | Multi-Media Attachments   | P3       | Done   |
+| Story  | Title                   | Priority | Status |
+| ------ | ----------------------- | -------- | ------ |
+| US-006 | Smart Submission Forms  | P3       | Done   |
+| US-007 | Multi-Media Attachments | P3       | Done   |

@@ -15,6 +15,7 @@ Full-stack employee innovation management portal built with Next.js 16 App Route
 **Framework**: Next.js 14+ (App Router; server components by default; `"use client"` only where state or browser APIs are required)
 
 **Primary Dependencies**:
+
 - `next`, `react`, `react-dom` — framework
 - `tailwindcss` v4 with `@theme` CSS custom properties in `globals.css` — styling & design tokens
 - `shadcn/ui` (New York style, CSS variables on) — UI component library
@@ -37,6 +38,7 @@ Full-stack employee innovation management portal built with Next.js 16 App Route
 **Performance Goals**: Subjectively responsive for ≤ 10 concurrent local users; no SLA
 
 **Constraints**:
+
 - No CSS-in-JS; Tailwind `@theme` tokens only; no `tailwind.config.ts`
 - No dependencies outside the permitted list without justification comment
 - File uploads stored in `uploads/` at project root (outside `public/`); max 10 MB; gitignored
@@ -47,16 +49,16 @@ Full-stack employee innovation management portal built with Next.js 16 App Route
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|---|---|---|
-| I. Clean Code | ✅ | Functions ≤ 30 lines; ESLint + Prettier configured at scaffold; intention-revealing names enforced by code review |
-| II. Simple & Responsive UI | ✅ | Mobile-first Tailwind utility classes; shadcn/ui for all interactive elements; loading/empty/error states defined in spec |
-| III. Minimal Dependencies | ✅ | All 10 runtime deps are on the permitted list; `sonner` and `react-hook-form` approved as shadcn peers |
-| IV. Next.js + React + Tailwind | ✅ | App Router; server components by default; `@theme` in `globals.css`; SQLite via `better-sqlite3`; Zod at every API boundary |
-| V. SDD Workflow | ✅ | Spec accepted with 13 CLs resolved; this plan precedes all code |
-| Security | ✅ | bcrypt passwords; Zod validation before DB; role guards in `middleware.ts` + repeated in route handlers; files outside web root |
+| Principle                      | Status | Notes                                                                                                                           |
+| ------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| I. Clean Code                  | ✅     | Functions ≤ 30 lines; ESLint + Prettier configured at scaffold; intention-revealing names enforced by code review               |
+| II. Simple & Responsive UI     | ✅     | Mobile-first Tailwind utility classes; shadcn/ui for all interactive elements; loading/empty/error states defined in spec       |
+| III. Minimal Dependencies      | ✅     | All 10 runtime deps are on the permitted list; `sonner` and `react-hook-form` approved as shadcn peers                          |
+| IV. Next.js + React + Tailwind | ✅     | App Router; server components by default; `@theme` in `globals.css`; SQLite via `better-sqlite3`; Zod at every API boundary     |
+| V. SDD Workflow                | ✅     | Spec accepted with 13 CLs resolved; this plan precedes all code                                                                 |
+| Security                       | ✅     | bcrypt passwords; Zod validation before DB; role guards in `middleware.ts` + repeated in route handlers; files outside web root |
 
 **Post-Design Re-check**: ✅ All principles hold after Phase 1 design. No violations introduced.
 
@@ -151,14 +153,14 @@ All brand and status colours live in `globals.css` under `@theme`. No `tailwind.
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary:        #0057B8;   /* EPAM blue */
-  --color-brand-secondary:      #00A9E0;
-  --color-status-submitted:     #6B7280;   /* gray-500 */
-  --color-status-under-review:  #D97706;   /* amber-600 */
-  --color-status-accepted:      #16A34A;   /* green-600 */
-  --color-status-rejected:      #DC2626;   /* red-600 */
-  --color-status-draft:         #9CA3AF;   /* gray-400 */
-  --radius-card:                0.75rem;
+  --color-brand-primary: #0057b8; /* EPAM blue */
+  --color-brand-secondary: #00a9e0;
+  --color-status-submitted: #6b7280; /* gray-500 */
+  --color-status-under-review: #d97706; /* amber-600 */
+  --color-status-accepted: #16a34a; /* green-600 */
+  --color-status-rejected: #dc2626; /* red-600 */
+  --color-status-draft: #9ca3af; /* gray-400 */
+  --radius-card: 0.75rem;
 }
 ```
 
@@ -265,25 +267,26 @@ Download: GET /api/ideas/[id]/attachments/[attachmentId]
 
 ```ts
 // src/lib/utils.ts
-import { format } from 'date-fns'
-export const formatDate     = (iso: string) => format(new Date(iso), 'MMM d, yyyy')
-export const formatDateTime = (iso: string) => format(new Date(iso), 'MMM d, yyyy HH:mm')
+import { format } from "date-fns";
+export const formatDate = (iso: string) => format(new Date(iso), "MMM d, yyyy");
+export const formatDateTime = (iso: string) =>
+  format(new Date(iso), "MMM d, yyyy HH:mm");
 ```
 
 ### shadcn/ui Component Usage Map
 
-| UI Element | shadcn Component |
-|---|---|
-| Forms | `Form`, `FormField`, `FormItem`, `FormMessage` |
-| Text inputs | `Input`, `Textarea` |
-| Dropdowns | `Select`, `SelectItem` |
-| Status badge | `Badge` + `--color-status-*` token |
-| Buttons / navigation | `Button`, `DropdownMenu` |
-| Toast feedback | `Sonner` (via `sonner`) |
-| Dialogs | `Dialog`, `AlertDialog` |
-| Cards / layout | `Card`, `CardHeader`, `CardContent` |
-| Loading states | `Skeleton` |
-| Empty states | `Card` + `Button` (custom layout) |
+| UI Element           | shadcn Component                               |
+| -------------------- | ---------------------------------------------- |
+| Forms                | `Form`, `FormField`, `FormItem`, `FormMessage` |
+| Text inputs          | `Input`, `Textarea`                            |
+| Dropdowns            | `Select`, `SelectItem`                         |
+| Status badge         | `Badge` + `--color-status-*` token             |
+| Buttons / navigation | `Button`, `DropdownMenu`                       |
+| Toast feedback       | `Sonner` (via `sonner`)                        |
+| Dialogs              | `Dialog`, `AlertDialog`                        |
+| Cards / layout       | `Card`, `CardHeader`, `CardContent`            |
+| Loading states       | `Skeleton`                                     |
+| Empty states         | `Card` + `Button` (custom layout)              |
 
 ### Zod Validation Schemas
 
@@ -299,6 +302,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 ## Implementation Phases
 
 ### Phase 0 — Project Scaffold
+
 1. `npx create-next-app@latest innovatepam --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
 2. `npx shadcn@latest init` — New York style, CSS variables on
 3. `npm install better-sqlite3 bcryptjs next-auth zod date-fns uuid sonner`
@@ -309,6 +313,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 8. Create `.env.local` with `NEXTAUTH_SECRET`
 
 ### Phase 1 — Database + Auth (US1)
+
 1. Write `schema.sql` and `src/lib/db/index.ts` (singleton; runs schema idempotently on import)
 2. Write `seed.ts` (1 admin `admin@epam.com / Admin1234!`, 2 submitters)
 3. Configure NextAuth in `src/lib/auth.ts` + `api/auth/[...nextauth]/route.ts`
@@ -317,6 +322,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 6. Implement `POST /api/users` (register endpoint)
 
 ### Phase 2 — Idea Submission (US2)
+
 1. Add `IdeaSchema` to `validations.ts`
 2. Build `POST /api/ideas` route (validate → uuid → insert → 201)
 3. Build `POST /api/ideas/[id]/attachments` upload route
@@ -324,6 +330,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 5. Redirect `/dashboard` + success toast on submit (CL-003)
 
 ### Phase 3 — Dashboard + Detail View (US3)
+
 1. Build `GET /api/ideas` (submitter: own ideas; admin: all excluding drafts)
 2. Build `GET /api/ideas/[id]` (ownership check + draft guard)
 3. Build attachment download route (auth-gated per CL-007)
@@ -331,22 +338,26 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 5. Build `/ideas/[id]` shared detail page
 
 ### Phase 4 — Admin Panel + Evaluation (US4, US5)
+
 1. Build `POST /api/ideas/[id]/evaluate` (upsert evaluation; update idea status atomically)
 2. Build `/admin` page (counts per status using `Card` grid)
 3. Build `/admin/ideas` list with `StatusFilter` client component
 4. Build `/admin/ideas/[id]/evaluate` page with `EvaluationForm`
 
 ### Phase 5 — Smart Submission Forms (US6)
+
 1. Make `IdeaForm` dynamic: reveal category-specific fields on category change
 2. Persist additional fields in `category_metadata` JSON column
 3. Update `IdeaSchema` to conditionally require category fields
 
 ### Phase 6 — Multi-Media Attachments (US7)
+
 1. Extend upload route to accept multiple files per request (up to 5)
 2. Build `AttachmentList` component with image inline preview / download fallback
 3. Integrate into detail page
 
 ### Phase 7 — Draft Management (US8)
+
 1. Add `?status=draft` path to `POST /api/ideas` + `PATCH /api/ideas/[id]` for edits
 2. "Save Draft" button on `IdeaForm`
 3. "My Drafts" section on `/dashboard`
@@ -354,6 +365,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 5. Guard: 403 for admin access to draft detail page (CL-010)
 
 ### Phase 8 — Multi-Stage Review Pipeline (US9)
+
 1. Add `screening` to `ideas.status` CHECK constraint (DB migration)
 2. Create `review_stage_history` table
 3. Update `EvaluationSchema` to include `screening` in decision enum
@@ -363,6 +375,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 7. Add `StatusBadge` colour for `screening` (purple `#7C3AED`)
 
 ### Phase 9 — Blind Review & Anonymous Submission (US10)
+
 1. Create `settings` table; seed `blind_mode = '0'`
 2. Add `is_anonymous INTEGER NOT NULL DEFAULT 0` to `ideas`
 3. Create `src/lib/settings.ts` (`isBlindMode()`, `setBlindMode()`)
@@ -373,6 +386,7 @@ EvaluationSchema: { decision: enum('under_review','accepted','rejected'), notes?
 8. Submitter detail page: show "🔒 Submitted anonymously" badge when applicable
 
 ### Phase 10 — Scoring System (US11)
+
 1. Add `scores TEXT` column to `evaluations` (DB migration)
 2. Create `IdeaScores` type; add `ScoresSchema` (each dimension: int 1–5)
 3. Add `scores` field to `EvaluationSchema`

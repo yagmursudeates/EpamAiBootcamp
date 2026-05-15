@@ -49,6 +49,9 @@ export default async function IdeaDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <a href="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        ← Back to dashboard
+      </a>
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-2xl font-bold">{idea.title}</h1>
         <div className="flex items-center gap-2">
@@ -159,6 +162,16 @@ export default async function IdeaDetailPage({ params }: PageProps) {
               Evaluated by {evaluation.evaluator_name} on{' '}
               {formatDateTime(evaluation.updated_at)}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!evaluation && idea.status !== 'draft' && (
+        <Card>
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            <p className="text-2xl mb-2">⏳</p>
+            <p className="font-medium">Pending evaluation</p>
+            <p className="text-xs mt-1">An admin will review your idea soon.</p>
           </CardContent>
         </Card>
       )}

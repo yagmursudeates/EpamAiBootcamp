@@ -60,6 +60,9 @@ export default async function AdminIdeaDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <a href="/admin/ideas" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        ← Back to all ideas
+      </a>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{idea.title}</h1>

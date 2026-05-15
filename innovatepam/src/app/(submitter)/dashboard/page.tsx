@@ -41,12 +41,13 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-semibold mb-3 text-muted-foreground">My Drafts</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {drafts.map((idea) => (
-              <div key={idea.id} className="flex flex-col">
+              <div key={idea.id} className="relative group">
                 <IdeaCard idea={{ ...idea, submitter_name: undefined }} href={`/ideas/${idea.id}/edit`} />
-                <div className="flex justify-end gap-2 px-1 pt-1">
+                <div className="absolute bottom-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a
                     href={`/ideas/${idea.id}/edit`}
-                    className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent h-7 px-2"
+                    className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-input bg-background hover:bg-accent h-7 px-2 shadow-sm"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     Edit
                   </a>
@@ -71,9 +72,9 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {submitted.map((idea) => (
-              <div key={idea.id} className="flex flex-col">
+              <div key={idea.id} className="relative group">
                 <IdeaCard idea={{ ...idea, submitter_name: undefined }} href={`/ideas/${idea.id}`} />
-                <div className="flex justify-end px-1 pt-1">
+                <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <DeleteIdeaButton ideaId={idea.id} size="sm" />
                 </div>
               </div>

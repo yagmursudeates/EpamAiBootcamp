@@ -278,11 +278,24 @@ export default function IdeaForm({ draft }: IdeaFormProps = {}) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="attachment">Attachments (optional, up to 5 files)</Label>
-        <Input
-          id="attachment"
+        <Label>Attachments (optional, up to 5 files)</Label>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            onClick={() => document.getElementById('attachment-input')?.click()}
+          >
+            📎 Choose files
+          </button>
+          <span className="text-xs text-muted-foreground">
+            {files.length > 0 ? `${files.length} / 5 selected` : 'PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4 · Max 20 MB'}
+          </span>
+        </div>
+        <input
+          id="attachment-input"
           type="file"
           multiple
+          className="hidden"
           accept=".pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov"
           onChange={(e) => {
             const picked = Array.from(e.target.files ?? [])
