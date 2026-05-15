@@ -6,17 +6,17 @@ A full-stack employee innovation management platform for EPAM. Staff submit idea
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16.2.6 (App Router, React 19, TypeScript) |
-| Styling | Tailwind CSS v4 (`@theme inline` design tokens in `globals.css`) |
-| Component Library | shadcn/ui (Nova preset, Radix primitives) |
-| Database | SQLite via `better-sqlite3` v12 — single-file, WAL mode |
-| Auth | NextAuth.js v5 beta — Credentials provider, JWT sessions (24 h) |
-| Validation | Zod v4 — shared between client and server |
-| Email | nodemailer v7 + Ethereal SMTP (fire-and-forget, env-gated) |
-| Toasts | Sonner |
-| Testing | Vitest v4 + React Testing Library + jsdom |
+| Layer             | Technology                                                       |
+| ----------------- | ---------------------------------------------------------------- |
+| Framework         | Next.js 16.2.6 (App Router, React 19, TypeScript)                |
+| Styling           | Tailwind CSS v4 (`@theme inline` design tokens in `globals.css`) |
+| Component Library | shadcn/ui (Nova preset, Radix primitives)                        |
+| Database          | SQLite via `better-sqlite3` v12 — single-file, WAL mode          |
+| Auth              | NextAuth.js v5 beta — Credentials provider, JWT sessions (24 h)  |
+| Validation        | Zod v4 — shared between client and server                        |
+| Email             | nodemailer v7 + Ethereal SMTP (fire-and-forget, env-gated)       |
+| Toasts            | Sonner                                                           |
+| Testing           | Vitest v4 + React Testing Library + jsdom                        |
 
 ---
 
@@ -63,17 +63,18 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Test Accounts
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@epam.com` | `Admin1234!` |
-| Submitter | `alice@epam.com` | `Test1234!` |
-| Submitter | `bob@epam.com` | `Test1234!` |
+| Role      | Email            | Password     |
+| --------- | ---------------- | ------------ |
+| Admin     | `admin@epam.com` | `Admin1234!` |
+| Submitter | `alice@epam.com` | `Test1234!`  |
+| Submitter | `bob@epam.com`   | `Test1234!`  |
 
 ---
 
 ## Features
 
 ### Phase 1 — Core Portal
+
 - Role-based auth: registration, login, JWT sessions (24 h); `submitter` → `/dashboard`, `admin` → `/admin`
 - Idea submission with title, description, category (5 options), and optional file attachment
 - File validation: MIME type allowlist (PDF, DOCX, PPTX, XLSX, PNG, JPG, GIF, MP4) + 20 MB limit server-side
@@ -82,35 +83,42 @@ Open [http://localhost:3000](http://localhost:3000)
 - Admin idea listing with status filter; evaluation form with decision + notes; re-evaluation supported
 
 ### Phase 2 — Smart Submission Forms
+
 - Category-specific dynamic fields revealed on category selection (no page reload)
 - `categoryMetadata` stored as JSON and displayed on both admin and submitter detail pages
 
 ### Phase 3 — Multi-Media Attachments
+
 - Up to 5 files per idea via custom "📎 Choose files" button (no OS-locale native input)
 - File list with per-file remove before submission; attachment list on detail pages
 
 ### Phase 4 — Draft Management
+
 - Save incomplete ideas as `draft`; resume editing across sessions; promote to `submitted` when ready
 - Drafts shown in a separate "My Drafts" section; invisible to admins even via direct URL
 
 ### Phase 5 — Multi-Stage Review Pipeline
+
 - 4-stage pipeline: Submitted → Screening → Under Review → Accepted / Rejected
 - Stage-aware evaluation buttons — only valid forward transitions shown
 - Every transition logged immutably in `review_stage_history` with evaluator, timestamps, from/to status, and notes
 - Terminal-state re-open to `under_review` supported
 
 ### Phase 6 — Blind Review & Anonymous Submission
+
 - Global `blind_mode` setting (admin toggle) hides all submitter names across the admin portal
 - `BlindModeToggle` client component with optimistic UI and `router.refresh()` after toggle
 - Per-idea `is_anonymous` flag set at submission time; persists independently of global toggle
 - "🔒 Submitted anonymously" badge shown to submitters on their own anonymous ideas
 
 ### Phase 7 — Scoring System
+
 - 1–5 score picker on four dimensions: Innovation, Feasibility, Impact, Clarity
 - Live arithmetic average displayed during scoring
 - Scores stored as JSON in `evaluations.scores`; bar indicator cards on admin and submitter detail pages
 
 ### Bonus Features
+
 - **Email notifications** — nodemailer + Ethereal triggered on evaluation; gated by `EMAIL_HOST` env var
 - **In-app notifications** — bell icon with unread count; mark-as-read support
 - **Delete ideas / drafts** — hover-reveal delete button on dashboard cards with confirmation dialog; `DELETE /api/ideas/[id]`
@@ -167,21 +175,21 @@ innovatepam.db                     # SQLite database — gitignored
 
 ## API Routes
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/users` | Public | Register new account |
-| GET | `/api/ideas` | Any | Own ideas (submitter) or all non-draft (admin) |
-| POST | `/api/ideas` | Any | Create idea or draft |
-| GET | `/api/ideas/[id]` | Owner / Admin | Idea detail with evaluation and attachments |
-| PATCH | `/api/ideas/[id]` | Owner | Update draft |
-| DELETE | `/api/ideas/[id]` | Owner | Delete idea or draft |
-| POST | `/api/ideas/[id]/evaluate` | Admin | Upsert evaluation + record stage history |
-| POST | `/api/ideas/[id]/attachments` | Owner | Upload file(s) |
-| GET | `/api/attachments/[id]/download` | Owner / Admin | Download attachment |
-| GET | `/api/notifications` | Any | List notifications for current user |
-| PATCH | `/api/notifications/[id]` | Any | Mark notification as read |
-| GET | `/api/admin/blind-mode` | Admin | Get current blind mode state |
-| POST | `/api/admin/blind-mode` | Admin | Toggle blind mode |
+| Method | Path                             | Auth          | Description                                    |
+| ------ | -------------------------------- | ------------- | ---------------------------------------------- |
+| POST   | `/api/users`                     | Public        | Register new account                           |
+| GET    | `/api/ideas`                     | Any           | Own ideas (submitter) or all non-draft (admin) |
+| POST   | `/api/ideas`                     | Any           | Create idea or draft                           |
+| GET    | `/api/ideas/[id]`                | Owner / Admin | Idea detail with evaluation and attachments    |
+| PATCH  | `/api/ideas/[id]`                | Owner         | Update draft                                   |
+| DELETE | `/api/ideas/[id]`                | Owner         | Delete idea or draft                           |
+| POST   | `/api/ideas/[id]/evaluate`       | Admin         | Upsert evaluation + record stage history       |
+| POST   | `/api/ideas/[id]/attachments`    | Owner         | Upload file(s)                                 |
+| GET    | `/api/attachments/[id]/download` | Owner / Admin | Download attachment                            |
+| GET    | `/api/notifications`             | Any           | List notifications for current user            |
+| PATCH  | `/api/notifications/[id]`        | Any           | Mark notification as read                      |
+| GET    | `/api/admin/blind-mode`          | Admin         | Get current blind mode state                   |
+| POST   | `/api/admin/blind-mode`          | Admin         | Toggle blind mode                              |
 
 ---
 
@@ -216,24 +224,23 @@ npm run test:watch # watch mode
 
 Built spec-first using [GitHub SpecKit](https://github.com/github/spec-kit):
 
-| Artifact | Purpose |
-|---|---|
-| [CONSTITUTION.md](CONSTITUTION.md) | Non-negotiable project principles |
-| [specs/001-innovatepam-portal/spec.md](specs/001-innovatepam-portal/spec.md) | 11 user stories, 30 FRs, 12 success criteria |
-| [specs/001-innovatepam-portal/plan.md](specs/001-innovatepam-portal/plan.md) | Architecture, schema, implementation phases |
-| [specs/001-innovatepam-portal/tasks.md](specs/001-innovatepam-portal/tasks.md) | 100 tasks (T001–T100), all complete ✅ |
-| [specs/001-innovatepam-portal/epics/](specs/001-innovatepam-portal/epics/) | 7 epics (EP-001–007) |
-| [specs/001-innovatepam-portal/stories/](specs/001-innovatepam-portal/stories/) | 11 user stories (US-001–011) |
-| [specs/001-innovatepam-portal/adr/](specs/001-innovatepam-portal/adr/) | 3 Architecture Decision Records |
-| [specs/001-innovatepam-portal/contracts/api.md](specs/001-innovatepam-portal/contracts/api.md) | REST API contract |
-| [specs/001-innovatepam-portal/data-model.md](specs/001-innovatepam-portal/data-model.md) | Entity definitions and schema |
+| Artifact                                                                                       | Purpose                                      |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| [CONSTITUTION.md](CONSTITUTION.md)                                                             | Non-negotiable project principles            |
+| [specs/001-innovatepam-portal/spec.md](specs/001-innovatepam-portal/spec.md)                   | 11 user stories, 30 FRs, 12 success criteria |
+| [specs/001-innovatepam-portal/plan.md](specs/001-innovatepam-portal/plan.md)                   | Architecture, schema, implementation phases  |
+| [specs/001-innovatepam-portal/tasks.md](specs/001-innovatepam-portal/tasks.md)                 | 100 tasks (T001–T100), all complete ✅       |
+| [specs/001-innovatepam-portal/epics/](specs/001-innovatepam-portal/epics/)                     | 7 epics (EP-001–007)                         |
+| [specs/001-innovatepam-portal/stories/](specs/001-innovatepam-portal/stories/)                 | 11 user stories (US-001–011)                 |
+| [specs/001-innovatepam-portal/adr/](specs/001-innovatepam-portal/adr/)                         | 3 Architecture Decision Records              |
+| [specs/001-innovatepam-portal/contracts/api.md](specs/001-innovatepam-portal/contracts/api.md) | REST API contract                            |
+| [specs/001-innovatepam-portal/data-model.md](specs/001-innovatepam-portal/data-model.md)       | Entity definitions and schema                |
 
 ---
 
 ## License
 
 Built for educational purposes — EPAM A201 course project.
-
 
 ---
 
