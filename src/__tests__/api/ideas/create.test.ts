@@ -3,11 +3,15 @@ import { getServerSession } from 'next-auth';
 import { NextRequest } from 'next/server';
 import * as fs from 'node:fs/promises';
 import { POST } from '@/app/api/ideas/route';
+import { getDb } from '@/lib/db';
 import { createTestDb, closeTestDb } from '../../helpers/db';
 import { createTestUser } from '../../helpers/users';
 import { mockSession } from '../../helpers/auth';
 import { SUBMITTED_IDEA } from '../../fixtures/ideas';
 import type Database from 'better-sqlite3';
+
+vi.mock('@/lib/db', () => ({ getDb: vi.fn() }));
+vi.mock('node:fs/promises', () => ({ writeFile: vi.fn() }));
 
 // ─── T020 & T021: POST /api/ideas (US-002 AC-1, AC-2, AC-3, AC-4, AC-5) ──────
 
@@ -16,7 +20,7 @@ describe('POST /api/ideas', () => {
 
   beforeEach(async () => {
     db = createTestDb();
-    vi.mock('@/lib/db', () => ({ getDb: () => db }));
+    vi.mocked(getDb).mockReturnValue(db);
     vi.mocked(getServerSession).mockResolvedValue(mockSession());
   });
 
@@ -122,14 +126,13 @@ describe('POST /api/ideas — file attachment', () => {
 
   beforeEach(async () => {
     db = createTestDb();
-    vi.mock('@/lib/db', () => ({ getDb: () => db }));
+    vi.mocked(getDb).mockReturnValue(db);
     vi.mocked(getServerSession).mockResolvedValue(mockSession());
-    vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    vi.mocked(fs.writeFile).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     closeTestDb(db);
-    vi.restoreAllMocks();
     vi.resetModules();
   });
 
@@ -143,10 +146,16 @@ describe('POST /api/ideas — file attachment', () => {
     const file = new File(['content'], 'report.pdf', { type: 'application/pdf' });
     formData.append('attachment', file);
 
+    // jsdom's FormData is not serialised to multipart by NextRequest (which uses
+    // undici internally).  Work-around: create the request with a minimal body
+    // and mock `formData()` on the instance so the route handler receives the
+    // real FormData entries including the File object.
     const request = new NextRequest('http://localhost/api/ideas', {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'multipart/form-data; boundary=----boundary' },
+      body: '----boundary--',
     });
+    (request as any).formData = vi.fn().mockResolvedValue(formData);
 
     // Act
     const response = await POST(request);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { registrationSchema, ideaSchema } from '@/lib/validations';
+import { registrationSchema, ideaSchema, evaluationSchema } from '@/lib/validations';
 
 // ─── T011: Registration schema (US-001 AC-1) ─────────────────────────────────
 
@@ -146,5 +146,54 @@ describe('ideaSchema', () => {
       // Assert
       expect(result.success, `Expected category "${category}" to be valid`).toBe(true);
     });
+  });
+});
+
+// ─── T033: Evaluation schema (US-004 AC-1, AC-4) ─────────────────────────────
+
+describe('evaluationSchema', () => {
+  it('should accept { status: "accepted" }', () => {
+    // Arrange — AC-1
+    const result = evaluationSchema.safeParse({ status: 'accepted' });
+
+    // Assert
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept { status: "rejected", notes: "some feedback" }', () => {
+    // Arrange — AC-1
+    const result = evaluationSchema.safeParse({ status: 'rejected', notes: 'some feedback' });
+
+    // Assert
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept when the notes field is omitted entirely', () => {
+    // Arrange — AC-1: notes are optional
+    const result = evaluationSchema.safeParse({ status: 'accepted' });
+
+    // Assert
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.notes).toBeUndefined();
+    }
+  });
+
+  it('should reject a status value not in ["accepted", "rejected"]', () => {
+    // Arrange — AC-4
+    const result = evaluationSchema.safeParse({ status: 'pending' });
+
+    // Assert
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].path).toContain('status');
+  });
+
+  it('should reject when the status field is missing from the payload', () => {
+    // Arrange — AC-4 edge
+    const result = evaluationSchema.safeParse({ notes: 'some notes' });
+
+    // Assert
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].path).toContain('status');
   });
 });

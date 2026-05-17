@@ -3,6 +3,7 @@
 ## Core Principles
 
 ### I. Clean Code (NON-NEGOTIABLE)
+
 Every file, function, and component must be readable and self-explanatory.
 
 - Functions do one thing; keep them short (target ≤ 30 lines)
@@ -13,6 +14,7 @@ Every file, function, and component must be readable and self-explanatory.
 - Prefer explicit over clever — no magic numbers, no implicit type coercions
 
 ### II. Simple and Responsive UI/UX
+
 The interface must be immediately usable without training.
 
 - Mobile-first layout using Tailwind CSS responsive prefixes (`sm:`, `md:`, `lg:`)
@@ -24,6 +26,7 @@ The interface must be immediately usable without training.
 - Color contrast must meet WCAG AA minimum
 
 ### III. Minimal Dependencies
+
 Only add a dependency when it provides substantial, irreplaceable value.
 
 - Evaluate every new package: Could this be done with 10 lines of native code?
@@ -33,6 +36,7 @@ Only add a dependency when it provides substantial, irreplaceable value.
 - Any addition outside the permitted list requires a short justification comment in `package.json`
 
 ### IV. Next.js + React + Tailwind as the Canonical Stack
+
 These choices are fixed and not subject to per-feature deviation.
 
 - Framework: **Next.js 14+** App Router (server components by default; `"use client"` only when state or browser APIs are required)
@@ -44,6 +48,7 @@ These choices are fixed and not subject to per-feature deviation.
 - No CSS-in-JS libraries (styled-components, emotion, etc.)
 
 ### V. Spec-Driven Development (SDD) Workflow
+
 Specifications precede code. Always.
 
 - SpecKit artifacts (`CONSTITUTION.md`, `spec.md`, `plan.md`, `tasks.md`) are maintained in the repo root
@@ -74,11 +79,11 @@ Test-Driven Development (TDD) is the default workflow — not an option.
 
 ### 2. Coverage Requirements
 
-The Testing Pyramid governs layer distribution.
+The **Testing Diamond** governs layer distribution — integration tests remain the widest layer with a deliberate focus on **API contract testing**.
 
-- **~70% unit tests**: Pure functions in `src/lib/` — Zod schemas, validation logic, utilities, formatters
-- **~20% integration tests**: API route handlers in `src/app/api/` called directly (no HTTP); database operations using an in-memory SQLite instance
-- **~10% E2E tests**: Critical user workflows only — deferred to Playwright; in-scope from Phase 2 per ADR-001
+- **~30% unit tests**: Pure functions in `src/lib/` — Zod schemas, validation logic, utilities, formatters; broader unit coverage than Trophy; capture all significant branch paths in business logic
+- **~50% integration tests**: API route handlers in `src/app/api/` called directly (no HTTP); database operations using an in-memory SQLite instance; **API contract tests MUST verify request schema, response shape, and HTTP status for every endpoint**; component tests with React Testing Library are integration-level
+- **~20% E2E tests**: Critical user workflows end-to-end — deferred to Playwright; in-scope from Phase 2 per ADR-001; maintained at the same proportion as Trophy
 - **Static analysis**: TypeScript strict mode + ESLint; CI fails on type errors or lint violations
 - **Coverage targets**: ≥ 80% line coverage, ≥ 75% branch coverage, ≥ 75% mutation score
 - Coverage is enforced in CI (`npm run test:ci`); PRs below threshold MUST NOT be merged
@@ -86,11 +91,12 @@ The Testing Pyramid governs layer distribution.
 ### 3. Test Types & Organization
 
 Each test type has a designated location; directory structure mirrors the source tree.
+In the Testing Diamond model, integration tests are the widest layer with **API contract testing as the primary integration concern** — every route MUST have a contract test covering request schema, response shape, and HTTP status codes.
 
-- **Unit tests**: `src/__tests__/lib/**/*.test.ts` — mirrors `src/lib/`; covers Zod schemas, utilities, formatters, and pure business logic
-- **Integration tests**: `src/__tests__/api/**/*.test.ts` — grouped by API route/feature; calls route handlers directly without HTTP
-- **Component tests**: `src/__tests__/components/**/*.test.tsx` — grouped by component; tests rendering, interactions, and conditional state
-- **E2E tests**: `e2e/**/*.spec.ts` — grouped by user journey; deferred to Playwright per ADR-001
+- **Unit tests**: `src/__tests__/lib/**/*.test.ts` — mirrors `src/lib/`; covers Zod schemas, utilities, formatters, and pure business logic; broader than Trophy (Diamond: ~30%)
+- **Integration tests**: `src/__tests__/api/**/*.test.ts` — grouped by API route/feature; calls route handlers directly without HTTP; **this is the dominant layer (Diamond: ~50%); each file MUST include at least one API contract test**
+- **Component tests**: `src/__tests__/components/**/*.test.tsx` — grouped by component; tests rendering, interactions, and conditional state; **classified as integration-level in the Diamond model**
+- **E2E tests**: `e2e/**/*.spec.ts` — grouped by user journey; deferred to Playwright per ADR-001; held at ~20% (same as Trophy)
 - One test file per source file for unit and component tests; do not mix test types in the same file
 - Global test setup lives in `src/__tests__/setup.ts` (referenced by `vitest.config.ts`)
 
@@ -130,6 +136,7 @@ Use the right double for the right job; never mock what you own.
 A test that cannot catch a real bug provides false confidence — it is worse than no test.
 
 **What makes a good test:**
+
 - Tests **observable behaviour**, not implementation details — no assertions on private methods or internal state
 - Has **meaningful assertions** — not tautological (`expect(result).toBe(result)`) and not trivially always-true
 - Tests **one thing** — a single behaviour per `it()`; use multiple tests for multiple scenarios
@@ -137,12 +144,14 @@ A test that cannot catch a real bug provides false confidence — it is worse th
 - Is **deterministic**: same inputs always produce the same outputs; no dependency on execution order, wall-clock time, or network
 
 **Quality gates (enforced in CI):**
+
 - **Mutation score ≥ 75%** via Stryker (`@stryker-mutator/vitest-runner`); run with `npx stryker run`
 - **No tautological assertions**: code review MUST flag `expect(x).toBe(x)` and `expect(true).toBe(true)` patterns
 - **Human-validated oracles**: all expected values in assertions MUST be derived from the specification (story AC or ADR), never copied from the implementation output
 - **Line coverage ≥ 80%, branch coverage ≥ 75%** enforced via `coverage.thresholds` in `vitest.config.ts`
 
 **Anti-patterns (fail code review):**
+
 - Testing private methods or internal implementation state
 - Interdependent tests — suites that require a specific execution order to pass
 - Brittle tests — tests that break on safe refactoring with no behaviour change
@@ -164,11 +173,13 @@ The test suite is the merge gate.
 All tooling choices are locked for the project; changes require a constitution amendment.
 
 **Static analysis:**
+
 - **TypeScript** strict mode (`"strict": true` in `tsconfig.json`) — CI fails on type errors
 - **ESLint** with `eslint-config-next` — CI fails on lint violations
 - **Prettier** for formatting (enforced via ESLint plugin)
 
 **Unit & integration testing:**
+
 - **Framework**: Vitest (v2+) — native ESM, Vite-compatible, no config overhead
 - **Assertion**: Vitest built-in `expect` (Chai-compatible API)
 - **Mocking**: Vitest built-in `vi` (replaces Jest's `jest` object)
@@ -176,25 +187,27 @@ All tooling choices are locked for the project; changes require a constitution a
 - **Test environment**: `jsdom` (configured in `vitest.config.ts`)
 
 **E2E testing:**
+
 - **Framework**: Playwright — deferred to Phase 2 per ADR-001
 - Optional: Stagehand for AI-native browser automation (evaluate at Phase 2 start)
 
 **Coverage & quality:**
+
 - **Coverage tool**: `@vitest/coverage-v8` — 80% line, 75% branch (enforced via `coverage.thresholds` in `vitest.config.ts`)
 - **Mutation testing**: Stryker `@stryker-mutator/vitest-runner` — ≥ 75% mutation score
 
 **Execution commands (npm):**
 
-| Purpose | Command |
-|---|---|
-| Type check | `npx tsc --noEmit` |
-| Lint | `npm run lint` |
-| Run all tests + coverage | `npm run test:ci` |
-| Run unit tests only | `npx vitest run src/__tests__/lib` |
+| Purpose                    | Command                            |
+| -------------------------- | ---------------------------------- |
+| Type check                 | `npx tsc --noEmit`                 |
+| Lint                       | `npm run lint`                     |
+| Run all tests + coverage   | `npm run test:ci`                  |
+| Run unit tests only        | `npx vitest run src/__tests__/lib` |
 | Run integration tests only | `npx vitest run src/__tests__/api` |
-| Run E2E tests | `npx playwright test` *(Phase 2+)* |
-| Generate coverage report | `npx vitest run --coverage` |
-| Run mutation testing | `npx stryker run` |
+| Run E2E tests              | `npx playwright test` _(Phase 2+)_ |
+| Generate coverage report   | `npx vitest run --coverage`        |
+| Run mutation testing       | `npx stryker run`                  |
 
 **Pre-commit hook**: `tsc --noEmit` → `npm run lint` → `npx vitest run src/__tests__/lib`
 
@@ -215,4 +228,4 @@ Amendments require an update to this file with a rationale note and version bump
 All pull requests are reviewed against these principles before merge.
 When requirements conflict with mockups, **requirements are authoritative**.
 
-**Version**: 1.4.0 | **Ratified**: 2026-05-13 | **Last Amended**: 2026-05-17
+**Version**: 1.6.0 | **Ratified**: 2026-05-13 | **Last Amended**: 2026-05-17

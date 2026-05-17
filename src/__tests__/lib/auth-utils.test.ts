@@ -24,7 +24,8 @@ describe('hashPassword', () => {
     const hash = await hashPassword(plaintext);
 
     // Assert — derived from bcrypt spec; $2b$ prefix confirms algorithm
-    expect(hash.startsWith('$2b$')).toBe(true);
+    // Use toMatch() directly on the hash string rather than wrapping startsWith() in toBe(true)
+    expect(hash).toMatch(/^\$2b\$/);
   });
 });
 

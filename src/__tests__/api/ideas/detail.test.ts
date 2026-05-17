@@ -2,11 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getServerSession } from 'next-auth';
 import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/ideas/[id]/route';
+import { getDb } from '@/lib/db';
 import { createTestDb, closeTestDb } from '../../helpers/db';
 import { createTestUser } from '../../helpers/users';
 import { insertTestIdea } from '../../helpers/ideas';
 import { mockSession } from '../../helpers/auth';
 import type Database from 'better-sqlite3';
+
+vi.mock('@/lib/db', () => ({ getDb: vi.fn() }));
 
 // ─── T024: GET /api/ideas/[id] (US-003 AC-3, security) ───────────────────────
 
@@ -15,7 +18,7 @@ describe('GET /api/ideas/[id]', () => {
 
   beforeEach(async () => {
     db = createTestDb();
-    vi.mock('@/lib/db', () => ({ getDb: () => db }));
+    vi.mocked(getDb).mockReturnValue(db);
   });
 
   afterEach(() => {

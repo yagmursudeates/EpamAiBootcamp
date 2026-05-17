@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import LoginForm from '@/components/auth/LoginForm';
 
 // ─── T016: LoginForm component (US-001 AC-4) ─────────────────────────────────
@@ -31,9 +32,8 @@ describe('LoginForm', () => {
   it('should not navigate away from /login when credentials are incorrect', async () => {
     // Arrange — AC-4: "no session is created"
     vi.mocked(signIn).mockResolvedValueOnce({ error: 'CredentialsSignin', ok: false, status: 401, url: null });
-    const { useRouter } = await import('next/navigation');
     const mockPush = vi.fn();
-    vi.mocked(useRouter).mockReturnValue({ push: mockPush, replace: vi.fn(), back: vi.fn() } as ReturnType<typeof useRouter>);
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush, replace: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() } as any);
     render(<LoginForm />);
 
     // Act

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useRouter } from 'next/navigation';
 import RegisterForm from '@/components/auth/RegisterForm';
 
 // ─── T015: RegisterForm component (US-001 AC-1, AC-2) ───────────────────────
@@ -49,10 +50,7 @@ describe('RegisterForm', () => {
   it('should call router.push("/dashboard") on a successful 201 response', async () => {
     // Arrange — AC-1: "redirected to /dashboard"
     const mockPush = vi.fn();
-    vi.mock('next/navigation', () => ({
-      useRouter: () => ({ push: mockPush, replace: vi.fn() }),
-      usePathname: () => '/',
-    }));
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush, replace: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() } as any);
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({ user: { id: '1', role: 'submitter' } }), { status: 201 })
     );

@@ -7,51 +7,84 @@ const TEN_MB = 10 * 1024 * 1024;
 
 describe('validateAttachment', () => {
   it('should accept PDF MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({ mimetype: 'application/pdf', size: 1024 });
+    // Assert
     expect(result.valid).toBe(true);
   });
 
   it('should accept DOCX MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({
       mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       size: 1024,
     });
+    // Assert
     expect(result.valid).toBe(true);
   });
 
   it('should accept PPTX MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({
       mimetype: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       size: 1024,
     });
+    // Assert
     expect(result.valid).toBe(true);
   });
 
   it('should accept XLSX MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({
       mimetype: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       size: 1024,
     });
+    // Assert
     expect(result.valid).toBe(true);
   });
 
   it('should accept PNG MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({ mimetype: 'image/png', size: 1024 });
+    // Assert
     expect(result.valid).toBe(true);
   });
 
-  it('should accept JPG/JPEG MIME types', () => {
-    expect(validateAttachment({ mimetype: 'image/jpg', size: 1024 }).valid).toBe(true);
-    expect(validateAttachment({ mimetype: 'image/jpeg', size: 1024 }).valid).toBe(true);
+  // Split into two tests — Section 7: each it() tests exactly one thing
+  it('should accept JPG MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
+    const result = validateAttachment({ mimetype: 'image/jpg', size: 1024 });
+    // Assert
+    expect(result.valid).toBe(true);
+  });
+
+  it('should accept JPEG MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
+    const result = validateAttachment({ mimetype: 'image/jpeg', size: 1024 });
+    // Assert
+    expect(result.valid).toBe(true);
   });
 
   it('should accept GIF MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({ mimetype: 'image/gif', size: 1024 });
+    // Assert
     expect(result.valid).toBe(true);
   });
 
   it('should accept MP4 MIME type', () => {
+    // Arrange — AC-2 allowlist
+    // Act
     const result = validateAttachment({ mimetype: 'video/mp4', size: 1024 });
+    // Assert
     expect(result.valid).toBe(true);
   });
 

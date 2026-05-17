@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { authorizeCredentials } from '@/lib/auth-credentials';
+import { getDb } from '@/lib/db';
 import { createTestDb, closeTestDb } from '../../helpers/db';
 import { createTestUser } from '../../helpers/users';
 import { ADMIN_USER, TEST_PASSWORDS } from '../../fixtures/users';
 import type Database from 'better-sqlite3';
+
+vi.mock('@/lib/db', () => ({ getDb: vi.fn() }));
 
 // ─── T014: NextAuth credentials provider (US-001 AC-3, AC-4) ─────────────────
 // Tests the authorize() function extracted from auth.ts credentials provider.
@@ -14,7 +17,7 @@ describe('authorizeCredentials', () => {
 
   beforeEach(async () => {
     db = createTestDb();
-    vi.mock('@/lib/db', () => ({ getDb: () => db }));
+    vi.mocked(getDb).mockReturnValue(db);
   });
 
   afterEach(() => {

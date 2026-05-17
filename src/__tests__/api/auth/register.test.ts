@@ -2,10 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getServerSession } from 'next-auth';
 import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/auth/register/route';
+import { getDb } from '@/lib/db';
 import { createTestDb, closeTestDb } from '../../helpers/db';
 import { mockSession } from '../../helpers/auth';
 import { SUBMITTER_USER } from '../../fixtures/users';
 import type Database from 'better-sqlite3';
+
+vi.mock('@/lib/db', () => ({ getDb: vi.fn() }));
 
 // ─── T013: POST /api/auth/register (US-001 AC-1, AC-2) ──────────────────────
 
@@ -15,7 +18,7 @@ describe('POST /api/auth/register', () => {
   beforeEach(() => {
     db = createTestDb();
     // Inject the test DB into the route handler
-    vi.mock('@/lib/db', () => ({ getDb: () => db }));
+    vi.mocked(getDb).mockReturnValue(db);
     vi.mocked(getServerSession).mockResolvedValue(null);
   });
 
@@ -110,6 +113,6 @@ describe('POST /api/auth/register', () => {
 
     // Assert
     expect(row.password_hash).not.toBe(plainPassword);
-    expect(row.password_hash.startsWith('$2b$')).toBe(true);
+    expect(row.password_hash).toMatch(/^\$2b\$/);
   });
 });
