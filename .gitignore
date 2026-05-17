@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Uploads (outside public/, served via authenticated API)
+uploads/
+
+# Test & coverage output
+coverage/
+reports/
+
+# Stryker mutation testing output
+.stryker-tmp/
+reports/mutation/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# TypeScript
+*.tsbuildinfo
+
+# Next.js cache
+.next/
+.vercel/
+
+# GitHub (security — per Constitution Security Requirements)
+.github/
